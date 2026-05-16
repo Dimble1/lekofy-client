@@ -1,0 +1,29 @@
+﻿<svg width="280" height="180" viewBox="0 0 280 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="chatBg" x1="24" y1="16" x2="254" y2="164" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#667EEA"/>
+      <stop offset="1" stop-color="#764BA2"/>
+    </linearGradient>
+    <linearGradient id="bubbleA" x1="67" y1="58" x2="128" y2="101" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff" stop-opacity="0.94"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.82"/>
+    </linearGradient>
+    <linearGradient id="bubbleB" x1="154" y1="83" x2="223" y2="130" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FDF2F8"/>
+      <stop offset="1" stop-color="#FCE7F3"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="24" y="16" width="232" height="148" rx="28" fill="url(#chatBg)"/>
+  <rect x="42" y="36" width="196" height="108" rx="18" fill="white" fill-opacity="0.2"/>
+
+  <path d="M64 61C64 52.716 70.716 46 79 46H126C134.284 46 141 52.716 141 61V83C141 91.284 134.284 98 126 98H95L82 108V98H79C70.716 98 64 91.284 64 83V61Z" fill="url(#bubbleA)"/>
+
+  <path d="M142 86C142 78.268 148.268 72 156 72H204C211.732 72 218 78.268 218 86V106C218 113.732 211.732 120 204 120H174L162 130V120H156C148.268 120 142 113.732 142 106V86Z" fill="url(#bubbleB)"/>
+
+  <rect x="78" y="59" width="48" height="7" rx="3.5" fill="#C7D2FE"/>
+  <rect x="78" y="72" width="35" height="7" rx="3.5" fill="#C7D2FE"/>
+
+  <rect x="156" y="85" width="46" height="7" rx="3.5" fill="#F9A8D4"/>
+  <rect x="156" y="98" width="31" height="7" rx="3.5" fill="#F9A8D4"/>
+</svg>
