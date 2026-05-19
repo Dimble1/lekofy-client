@@ -1,0 +1,572 @@
+﻿.my-ads-theme-active {
+  background: #141218;
+}
+
+#root.my-ads-root-active {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: initial !important;
+  min-height: 100vh;
+  background:
+    radial-gradient(560px 300px at 88% 6%, rgba(77, 52, 185, 0.24) 0%, rgba(20, 18, 24, 0) 72%),
+    radial-gradient(420px 260px at 16% 10%, rgba(124, 77, 255, 0.18) 0%, rgba(20, 18, 24, 0) 72%),
+    #141218;
+}
+
+.my-ads-page {
+  width: min(1220px, 100% - 32px);
+  margin: 0 auto;
+  padding: 28px 0 48px;
+  color: #e6e1e5;
+}
+
+.my-ads-header-card,
+.my-ads-stat-card,
+.my-ads-toolbar,
+.my-ads-list-wrap,
+.my-ads-item {
+  background: #1d1b20;
+  border: 1px solid #35343b;
+  border-radius: 16px;
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24);
+}
+
+.my-ads-header-card {
+  padding: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.my-ads-kicker {
+  margin: 0;
+  color: #ccc2dc;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.my-ads-header-card h1 {
+  margin: 8px 0 0;
+  font-size: clamp(26px, 4vw, 38px);
+  color: #e6e1e5;
+}
+
+.my-ads-subtitle {
+  margin: 8px 0 0;
+  color: #cac4d0;
+  font-size: 14px;
+  max-width: 620px;
+}
+
+.my-ads-create-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 800;
+  background: #4d34b9;
+  color: #ffffff;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.my-ads-create-btn:hover {
+  opacity: 0.92;
+}
+
+.my-ads-stats-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.my-ads-stat-card {
+  padding: 16px;
+  display: grid;
+  gap: 6px;
+  background: #201f26;
+}
+
+.my-ads-stat-card span {
+  color: #cac4d0;
+  font-size: 12px;
+}
+
+.my-ads-stat-card strong {
+  color: #e0e0ff;
+  font-size: 30px;
+  line-height: 1.1;
+}
+
+.my-ads-toolbar {
+  margin-top: 14px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 10px;
+  background: #1c1b1f;
+}
+
+.my-ads-toolbar input,
+.my-ads-toolbar select {
+  border: 1px solid #49454f;
+  border-radius: 10px;
+  background: #2b2930;
+  color: #e6e1e5;
+  padding: 11px 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.my-ads-toolbar input:focus,
+.my-ads-toolbar select:focus {
+  border-color: #7762e5;
+  box-shadow: 0 0 0 2px rgba(119, 98, 229, 0.26);
+}
+
+.my-ads-list-wrap {
+  margin-top: 14px;
+  padding: 16px;
+  background: #1c1b1f;
+}
+
+.my-ads-list-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: #cac4d0;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.my-ads-empty {
+  border: 1px dashed #49454f;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  color: #cac4d0;
+}
+
+.my-ads-error {
+  color: #ffb4ab;
+  border-color: rgba(255, 180, 171, 0.4);
+  background: rgba(147, 0, 10, 0.15);
+}
+
+.my-ads-list {
+  display: grid;
+  gap: 12px;
+}
+
+.my-ads-item {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr) 145px;
+  gap: 14px;
+  padding: 12px;
+  background: #201f27;
+}
+
+.my-ads-image-wrap {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #36343b;
+}
+
+.my-ads-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.my-ads-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #938f99;
+  font-size: 13px;
+}
+
+.my-ads-item-main {
+  min-width: 0;
+  display: grid;
+  align-content: space-between;
+}
+
+.my-ads-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.my-ads-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.my-ads-status--active {
+  background: rgba(77, 52, 185, 0.2);
+  color: #e0e0ff;
+  border-color: rgba(179, 179, 255, 0.35);
+}
+
+.my-ads-status--pending {
+  background: rgba(255, 214, 153, 0.14);
+  color: #ffdb94;
+  border-color: rgba(255, 219, 148, 0.34);
+}
+
+.my-ads-status--sold {
+  background: rgba(77, 201, 144, 0.16);
+  color: #9ff0c6;
+  border-color: rgba(159, 240, 198, 0.36);
+}
+
+.my-ads-status--rejected,
+.my-ads-status--archived {
+  background: rgba(255, 180, 171, 0.14);
+  color: #ffb4ab;
+  border-color: rgba(255, 180, 171, 0.35);
+}
+
+.my-ads-date {
+  color: #938f99;
+  font-size: 12px;
+}
+
+.my-ads-item-main h3 {
+  margin: 10px 0 0;
+  font-size: 20px;
+  color: #e6e1e5;
+}
+
+.my-ads-item-main p {
+  margin: 8px 0 0;
+  color: #cac4d0;
+  font-size: 14px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.my-ads-meta {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+}
+
+.my-ads-meta strong {
+  color: #b3b3ff;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.my-ads-meta span {
+  color: #938f99;
+  font-size: 13px;
+}
+
+.my-ads-actions {
+  display: grid;
+  gap: 8px;
+  align-content: center;
+}
+
+.my-ads-actions button {
+  border: 1px solid #49454f;
+  border-radius: 10px;
+  padding: 10px;
+  color: #e6e1e5;
+  background: #2b2930;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.my-ads-actions button:hover {
+  border-color: rgba(179, 179, 255, 0.45);
+}
+
+.my-ads-actions button.danger {
+  color: #ffb4ab;
+  border-color: rgba(255, 180, 171, 0.35);
+  background: rgba(147, 0, 10, 0.15);
+}
+
+.my-ads-actions button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.my-ads-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 1500;
+}
+
+.my-ads-modal {
+  width: min(760px, 100%);
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  background: #1c1b1f;
+  border: 1px solid #35343b;
+  border-radius: 16px;
+  box-shadow: 0 24px 44px rgba(0, 0, 0, 0.4);
+}
+
+.my-ads-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 16px 18px;
+  border-bottom: 1px solid #35343b;
+}
+
+.my-ads-modal-head h2 {
+  margin: 0;
+  color: #e6e1e5;
+  font-size: 20px;
+}
+
+.my-ads-modal-head button {
+  border: 1px solid #49454f;
+  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  background: #2b2930;
+  color: #e6e1e5;
+  cursor: pointer;
+}
+
+.my-ads-modal-form {
+  padding: 16px 18px 20px;
+  display: grid;
+  gap: 12px;
+}
+
+.my-ads-modal-form label {
+  display: grid;
+  gap: 7px;
+  color: #cac4d0;
+  font-size: 13px;
+}
+
+.my-ads-modal-form input,
+.my-ads-modal-form textarea,
+.my-ads-modal-form select {
+  border: 1px solid #49454f;
+  border-radius: 10px;
+  background: #2b2930;
+  color: #e6e1e5;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.my-ads-modal-form input:focus,
+.my-ads-modal-form textarea:focus,
+.my-ads-modal-form select:focus {
+  border-color: #7762e5;
+  box-shadow: 0 0 0 2px rgba(119, 98, 229, 0.26);
+}
+
+.my-ads-modal-form textarea {
+  resize: vertical;
+  min-height: 104px;
+}
+
+.my-ads-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.my-ads-photo-block {
+  border: 1px solid #35343b;
+  border-radius: 12px;
+  background: #201f27;
+  padding: 12px;
+}
+
+.my-ads-photo-title {
+  margin: 0 0 10px;
+  color: #e6e1e5;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.my-ads-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.my-ads-photo-item {
+  border: 1px solid #49454f;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #2b2930;
+}
+
+.my-ads-photo-item img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+}
+
+.my-ads-photo-item button {
+  width: 100%;
+  border: none;
+  border-top: 1px solid #49454f;
+  background: #2b2930;
+  color: #ffb4ab;
+  padding: 8px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.my-ads-photo-empty {
+  border: 1px dashed #49454f;
+  border-radius: 10px;
+  color: #938f99;
+  padding: 10px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.my-ads-photo-upload {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+  color: #cac4d0;
+  font-size: 13px;
+}
+
+.my-ads-photo-upload input {
+  border: 1px solid #49454f;
+  border-radius: 10px;
+  background: #2b2930;
+  color: #e6e1e5;
+  padding: 10px;
+}
+
+.my-ads-photo-grid--new {
+  margin-top: 10px;
+}
+
+.my-ads-modal-error {
+  color: #ffb4ab;
+  border: 1px solid rgba(255, 180, 171, 0.35);
+  background: rgba(147, 0, 10, 0.15);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.my-ads-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.my-ads-modal-actions button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #4d34b9;
+  color: #ffffff;
+}
+
+.my-ads-modal-actions button.ghost {
+  background: #2b2930;
+  border: 1px solid #49454f;
+  color: #e6e1e5;
+}
+
+.my-ads-modal-actions button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+@media (max-width: 980px) {
+  .my-ads-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .my-ads-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .my-ads-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .my-ads-page {
+    width: min(1220px, 100% - 22px);
+    padding-top: 18px;
+  }
+
+  .my-ads-header-card {
+    flex-direction: column;
+  }
+
+  .my-ads-toolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .my-ads-stats-grid,
+  .my-ads-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .my-ads-modal-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .my-ads-list-head {
+    flex-direction: column;
+  }
+
+  .my-ads-item-main h3 {
+    font-size: 18px;
+  }
+
+  .my-ads-meta strong {
+    font-size: 22px;
+  }
+}
+
