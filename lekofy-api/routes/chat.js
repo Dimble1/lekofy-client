@@ -183,7 +183,6 @@ router.post('/:chatId/messages/image', auth, upload.single('image'), async (req,
     }
 
     const result = await cloudinary.uploader.upload(req.file.path, {
-      upload_preset: 'ml_default',
       folder: 'lekofy/chat',
     });
 

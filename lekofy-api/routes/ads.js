@@ -235,7 +235,6 @@ router.post('/', auth, upload.array('images', 20), async (req, res) => {
       for (const file of req.files) {
         try {
           const result = await cloudinary.uploader.upload(file.path, {
-            upload_preset: 'ml_default',
             folder: 'lekofy'
           });
           imageUrls.push(result.secure_url);
@@ -357,7 +356,6 @@ router.put('/:id', auth, upload.array('images', 20), async (req, res) => {
       for (const file of req.files) {
         try {
           const result = await cloudinary.uploader.upload(file.path, {
-            upload_preset: 'ml_default',
             folder: 'lekofy',
           });
           uploadedUrls.push(result.secure_url);
