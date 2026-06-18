@@ -1,22 +1,52 @@
-﻿const router = require('express').Router();
+const router = require('express').Router();
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const { Op } = require('sequelize');
 const auth = require('../middleware/auth');
 const UserModel = require('../models/User');
 const Ad = require('../models/Ad');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
-const axios = require('axios');
+const {
+  normalizePhoneNumber,
+  isValidPhoneNumber,
+  buildAuthUserPayload,
+  issueToken,
+  requestPhoneOtp,
+  verifyPhoneOtp,
+} = require('../services/whatsappOtp');
 
 const upload = multer({ dest: 'uploads/' });
 const strongPasswordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+const whatsappVerifyToken = process.env.WHATSAPP_VERIFY_TOKEN || 'lekofy_whatsapp_verify_2026';
 
-// Р РµРіРёСЃС‚СЂР°С†РёСЏ
+function createGeneratedEmail(phone) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  return `user_${digits || Date.now()}@lekofy.local`;
+}
+
+function buildAuthResponse(user) {
+  return {
+    token: issueToken(user),
+    user: buildAuthUserPayload(user),
+  };
+}
+
+async function findUserByPhone(phone) {
+  const normalizedPhone = normalizePhoneNumber(phone);
+  if (!isValidPhoneNumber(normalizedPhone)) return null;
+
+  return UserModel.findOne({
+    where: {
+      [Op.or]: [{ phone: normalizedPhone }, { phone }],
+    },
+  });
+}
+
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, confirmPassword, phone } = req.body;
-    if (!name || !phone || !password || !confirmPassword) {
+    const { name, email, password, confirmPassword, phone, challengeId, code } = req.body;
+    if (!name || !phone || !password || !confirmPassword || !challengeId || !code) {
       return res.status(400).json({ error: 'Заполните все поля' });
     }
     if (password !== confirmPassword) {
@@ -26,38 +56,42 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Пароль должен содержать заглавную букву, цифру и спецсимвол (минимум 8 символов)' });
     }
 
-    const normalizedPhone = String(phone).trim();
+    const normalizedPhone = normalizePhoneNumber(phone);
+    if (!isValidPhoneNumber(normalizedPhone)) {
+      return res.status(400).json({ error: 'Введите номер телефона в международном формате, например +996700000000' });
+    }
+
+    const verification = await verifyPhoneOtp({
+      challengeId,
+      phone: normalizedPhone,
+      code,
+      purpose: 'register',
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+      createUser: false,
+    });
+    if (!verification?.verified) {
+      return res.status(400).json({ error: 'Не удалось подтвердить SMS-код' });
+    }
+
     const generatedEmail = (email && String(email).trim())
       ? String(email).trim().toLowerCase()
-      : `user_${normalizedPhone.replace(/[^0-9]/g, '') || Date.now()}@lekofy.local`;
+      : createGeneratedEmail(normalizedPhone);
 
     const existing = await UserModel.findOne({ where: { email: generatedEmail } });
     if (existing) return res.status(400).json({ error: 'Пользователь уже существует' });
 
+    const existingPhone = await UserModel.findOne({ where: { phone: normalizedPhone } });
+    if (existingPhone) return res.status(400).json({ error: 'Пользователь с таким номером уже существует' });
+
     const hash = await bcrypt.hash(password, 10);
     const user = await UserModel.create({ name, email: generatedEmail, password: hash, phone: normalizedPhone });
-    const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' }
-    );
-    res.json({
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        telegramEnabled: user.telegramEnabled,
-        telegramConfirmed: user.telegramConfirmed,
-      },
-    });
+    res.json(buildAuthResponse(user));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Р’С…РѕРґ
 router.post('/login', async (req, res) => {
   try {
     const { login, email, password } = req.body;
@@ -67,7 +101,20 @@ router.post('/login', async (req, res) => {
     }
 
     const isEmailLogin = loginValue.includes('@');
-    const user = await UserModel.findOne({ where: isEmailLogin ? { email: loginValue.toLowerCase() } : { phone: loginValue } });
+    const normalizedPhone = isEmailLogin ? null : normalizePhoneNumber(loginValue);
+    if (!isEmailLogin && !isValidPhoneNumber(normalizedPhone)) {
+      return res.status(400).json({ error: 'Введите номер телефона в международном формате' });
+    }
+    const user = await UserModel.findOne({
+      where: isEmailLogin
+        ? { email: loginValue.toLowerCase() }
+        : {
+            [Op.or]: [
+              { phone: normalizedPhone },
+              { phone: loginValue },
+            ],
+          },
+    });
     if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
     if (user.isBlocked) {
       let banMsg = 'Аккаунт заблокирован';
@@ -80,32 +127,178 @@ router.post('/login', async (req, res) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: 'Неверный пароль' });
 
-    const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' }
-    );
-    res.json({
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        telegramEnabled: user.telegramEnabled,
-        telegramConfirmed: user.telegramConfirmed,
-      },
-    });
+    res.json(buildAuthResponse(user));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// РџСЂРѕС„РёР»СЊ С‚РµРєСѓС‰РµРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+router.post('/whatsapp/request', async (req, res) => {
+  try {
+    const result = await requestPhoneOtp({
+      phone: req.body?.phone,
+      purpose: req.body?.purpose || 'login',
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(err.status || 500).json({
+      error: err.message || 'Не удалось отправить код',
+      retryAfterMs: err.retryAfterMs || undefined,
+    });
+  }
+});
+
+router.post('/whatsapp/verify', async (req, res) => {
+  try {
+    const result = await verifyPhoneOtp({
+      challengeId: req.body?.challengeId,
+      phone: req.body?.phone,
+      code: req.body?.code,
+      purpose: req.body?.purpose || 'login',
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+      createUser: true,
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(err.status || 500).json({
+      error: err.message || 'Не удалось проверить код',
+    });
+  }
+});
+
+router.get('/whatsapp/webhook', (req, res) => {
+  const mode = req.query['hub.mode'];
+  const token = req.query['hub.verify_token'];
+  const challenge = req.query['hub.challenge'];
+
+  if (mode === 'subscribe' && token === whatsappVerifyToken) {
+    return res.status(200).send(String(challenge || ''));
+  }
+
+  return res.sendStatus(403);
+});
+
+router.post('/whatsapp/webhook', (req, res) => {
+  console.log('[WhatsApp webhook]', JSON.stringify(req.body));
+  res.sendStatus(200);
+});
+
+router.post('/sms/request', async (req, res) => {
+  try {
+    const result = await requestPhoneOtp({
+      phone: req.body?.phone,
+      purpose: req.body?.purpose || 'login',
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(err.status || 500).json({
+      error: err.message || 'Не удалось отправить код',
+      retryAfterMs: err.retryAfterMs || undefined,
+    });
+  }
+});
+
+router.post('/sms/verify', async (req, res) => {
+  try {
+    const result = await verifyPhoneOtp({
+      challengeId: req.body?.challengeId,
+      phone: req.body?.phone,
+      code: req.body?.code,
+      purpose: req.body?.purpose || 'login',
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+      createUser: false,
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(err.status || 500).json({
+      error: err.message || 'Не удалось проверить код',
+    });
+  }
+});
+
+router.post('/password/reset/request', async (req, res) => {
+  try {
+    const phone = req.body?.phone;
+    const user = await findUserByPhone(phone);
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    const result = await requestPhoneOtp({
+      phone,
+      purpose: 'reset_password',
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(err.status || 500).json({
+      error: err.message || 'Не удалось отправить код',
+      retryAfterMs: err.retryAfterMs || undefined,
+    });
+  }
+});
+
+router.post('/password/reset', async (req, res) => {
+  try {
+    const { phone, challengeId, code, password, confirmPassword } = req.body;
+    if (!phone || !challengeId || !code || !password || !confirmPassword) {
+      return res.status(400).json({ error: 'Заполните все поля' });
+    }
+    if (password !== confirmPassword) {
+      return res.status(400).json({ error: 'Пароли не совпадают' });
+    }
+    if (!strongPasswordRegex.test(password)) {
+      return res.status(400).json({ error: 'Пароль должен содержать заглавную букву, цифру и спецсимвол (минимум 8 символов)' });
+    }
+
+    const normalizedPhone = normalizePhoneNumber(phone);
+    if (!isValidPhoneNumber(normalizedPhone)) {
+      return res.status(400).json({ error: 'Введите номер телефона в международном формате' });
+    }
+
+    const verification = await verifyPhoneOtp({
+      challengeId,
+      phone: normalizedPhone,
+      code,
+      purpose: 'reset_password',
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+      createUser: false,
+    });
+    if (!verification?.verified) {
+      return res.status(400).json({ error: 'Не удалось подтвердить SMS-код' });
+    }
+
+    const user = await findUserByPhone(normalizedPhone);
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+    await user.save();
+
+    res.json(buildAuthResponse(user));
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
 router.get('/me', auth, async (req, res) => {
   try {
     const user = await UserModel.findByPk(req.user.id, {
-      attributes: { exclude: ['password'] }
+      attributes: { exclude: ['password'] },
     });
     res.json(user);
   } catch (err) {
@@ -113,13 +306,12 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
-// РџСѓР±Р»РёС‡РЅС‹Р№ РїСЂРѕС„РёР»СЊ РїРѕ ID
 router.get('/profile/:id', async (req, res) => {
   try {
     const user = await UserModel.findByPk(req.params.id, {
       attributes: ['id', 'name', 'avatar', 'bio', 'createdAt', 'telegramEnabled', 'telegramConfirmed'],
     });
-    if (!user) return res.status(404).json({ error: 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РЅР°Р№РґРµРЅ' });
+    if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
     const ads = await Ad.findAll({
       where: { userId: req.params.id, status: 'active' },
       order: [['createdAt', 'DESC']],
@@ -130,15 +322,26 @@ router.get('/profile/:id', async (req, res) => {
   }
 });
 
-// РћР±РЅРѕРІР»РµРЅРёРµ РїСЂРѕС„РёР»СЏ С‚РµРєСѓС‰РµРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ (РёРјСЏ, С‚РµР»РµС„РѕРЅ, РѕРїРёСЃР°РЅРёРµ, Р°РІР°С‚Р°СЂ)
 router.put('/me', auth, upload.single('avatar'), async (req, res) => {
   try {
     const user = await UserModel.findByPk(req.user.id);
-    if (!user) return res.status(404).json({ error: 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РЅР°Р№РґРµРЅ' });
+    if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
 
     const { name, phone, bio } = req.body;
     if (name !== undefined) user.name = name;
-    if (phone !== undefined) user.phone = phone;
+    if (phone !== undefined) {
+      const normalizedPhone = normalizePhoneNumber(phone);
+      if (!isValidPhoneNumber(normalizedPhone)) {
+        return res.status(400).json({ error: 'Введите номер телефона в международном формате' });
+      }
+
+      const duplicate = await UserModel.findOne({ where: { phone: normalizedPhone } });
+      if (duplicate && Number(duplicate.id) !== Number(user.id)) {
+        return res.status(400).json({ error: 'Пользователь с таким номером уже существует' });
+      }
+
+      user.phone = normalizedPhone;
+    }
     if (bio !== undefined) user.bio = bio;
 
     if (req.file) {
@@ -149,9 +352,13 @@ router.put('/me', auth, upload.single('avatar'), async (req, res) => {
         });
         user.avatar = result.secure_url;
       } catch (e) {
-        console.error('РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё Р°РІР°С‚Р°СЂР°:', e.message);
+        console.error('Ошибка загрузки аватара:', e.message);
       } finally {
-        try { fs.unlinkSync(req.file.path); } catch (e) {}
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (e) {
+          // ignore cleanup errors
+        }
       }
     }
 
@@ -203,115 +410,4 @@ router.post('/telegram/settings', auth, async (req, res) => {
   }
 });
 
-// ===== Google OAuth =====
-router.get('/google', (req, res) => {
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const redirectUri =
-    process.env.GOOGLE_REDIRECT_URI ||
-    'http://localhost:3000/api/auth/google/callback';
-
-  if (!clientId) {
-    return res
-      .status(500)
-      .send('Google OAuth РЅРµ РЅР°СЃС‚СЂРѕРµРЅ (РЅРµС‚ GOOGLE_CLIENT_ID)');
-  }
-
-  const params = new URLSearchParams({
-    client_id: clientId,
-    redirect_uri: redirectUri,
-    response_type: 'code',
-    scope: 'openid email profile',
-    access_type: 'offline',
-    prompt: 'consent',
-  });
-
-  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
-});
-
-router.get('/google/callback', async (req, res) => {
-  try {
-    const code = req.query.code;
-    if (!code) {
-      return res.status(400).send('РќРµ РїРµСЂРµРґР°РЅ РєРѕРґ Р°РІС‚РѕСЂРёР·Р°С†РёРё');
-    }
-
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    const redirectUri =
-      process.env.GOOGLE_REDIRECT_URI ||
-      'http://localhost:3000/api/auth/google/callback';
-
-    if (!clientId || !clientSecret) {
-      return res
-        .status(500)
-        .send('Google OAuth РЅРµ РЅР°СЃС‚СЂРѕРµРЅ (РЅРµС‚ CLIENT_ID РёР»Рё CLIENT_SECRET)');
-    }
-
-    const tokenResp = await axios.post('https://oauth2.googleapis.com/token', {
-      code,
-      client_id: clientId,
-      client_secret: clientSecret,
-      redirect_uri: redirectUri,
-      grant_type: 'authorization_code',
-    });
-
-    const { access_token } = tokenResp.data;
-
-    const profileResp = await axios.get(
-      'https://www.googleapis.com/oauth2/v3/userinfo',
-      {
-        headers: { Authorization: `Bearer ${access_token}` },
-      },
-    );
-
-    const profile = profileResp.data;
-    const email = profile.email;
-    const name =
-      profile.name || profile.given_name || profile.email || 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ';
-
-    if (!email) {
-      return res.status(400).send('РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ email РѕС‚ Google');
-    }
-
-    let user = await UserModel.findOne({ where: { email } });
-    if (!user) {
-      const randomPassword = Math.random().toString(36).slice(-10);
-      const hash = await bcrypt.hash(randomPassword, 10);
-      user = await UserModel.create({
-        name,
-        email,
-        password: hash,
-      });
-    }
-
-    const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' },
-    );
-
-    const clientUrl = process.env.CLIENT_APP_URL || 'http://localhost:5173';
-    const userPayload = encodeURIComponent(
-      JSON.stringify({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      }),
-    );
-
-    res.redirect(
-      `${clientUrl}/auth/google/success?token=${encodeURIComponent(
-        token,
-      )}&user=${userPayload}`,
-    );
-  } catch (err) {
-    console.error('РћС€РёР±РєР° Google OAuth:', err.response?.data || err.message);
-    res.status(500).send('РћС€РёР±РєР° РІС…РѕРґР° С‡РµСЂРµР· Google');
-  }
-});
-
-
 module.exports = router;
-
-

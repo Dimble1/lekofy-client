@@ -35,15 +35,81 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const register = async (name, email, password, phone, confirmPassword) => {
+  const requestSmsCode = async (phone, purpose = 'login') => {
     try {
       setError(null);
-      const { token, user: userData } = await authAPI.register(name, email, password, phone, confirmPassword);
+      return await authAPI.requestSmsCode(phone, purpose);
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  const verifySmsCode = async (challengeId, phone, code, purpose = 'login') => {
+    try {
+      setError(null);
+      const { token, user: userData } = await authAPI.verifySmsCode(challengeId, phone, code, purpose);
+
+      setToken(token);
+      setUserToStorage(userData);
+      setUser(userData);
+
+      return { success: true, user: userData };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  const register = async (name, email, password, phone, confirmPassword, challengeId, code) => {
+    try {
+      setError(null);
+      const { token, user: userData } = await authAPI.registerWithSms(
+        name,
+        email,
+        password,
+        phone,
+        confirmPassword,
+        challengeId,
+        code,
+      );
       
       setToken(token);
       setUserToStorage(userData);
       setUser(userData);
       
+      return { success: true, user: userData };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  const requestPasswordResetCode = async (phone) => {
+    try {
+      setError(null);
+      return await authAPI.requestPasswordResetCode(phone);
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  const resetPassword = async (phone, challengeId, code, password, confirmPassword) => {
+    try {
+      setError(null);
+      const { token, user: userData } = await authAPI.resetPasswordWithSms(
+        phone,
+        challengeId,
+        code,
+        password,
+        confirmPassword,
+      );
+
+      setToken(token);
+      setUserToStorage(userData);
+      setUser(userData);
+
       return { success: true, user: userData };
     } catch (err) {
       setError(err.message);
@@ -67,7 +133,13 @@ export function AuthProvider({ children }) {
     loading,
     error,
     login,
+    requestSmsCode,
+    verifySmsCode,
+    requestWhatsappCode: requestSmsCode,
+    verifyWhatsappCode: verifySmsCode,
     register,
+    requestPasswordResetCode,
+    resetPassword,
     logout,
     setAuthUser,
     isLoggedIn: !!user,

@@ -78,10 +78,10 @@ const request = async (endpoint, options = {}) => {
 
 // ============ AUTH API ============
 export const authAPI = {
-  register: (name, email, password, phone, confirmPassword) =>
+  registerWithSms: (name, email, password, phone, confirmPassword, challengeId, code) =>
     request('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ name, email, password, phone, confirmPassword }),
+      body: JSON.stringify({ name, email, password, phone, confirmPassword, challengeId, code }),
     }),
 
   login: (login, password) =>
@@ -89,6 +89,40 @@ export const authAPI = {
       method: 'POST',
       body: JSON.stringify({ login, password }),
     }),
+
+  requestSmsCode: (phone, purpose = 'login') =>
+    request('/auth/sms/request', {
+      method: 'POST',
+      body: JSON.stringify({ phone, purpose }),
+    }),
+
+  verifySmsCode: (challengeId, phone, code, purpose = 'login') =>
+    request('/auth/sms/verify', {
+      method: 'POST',
+      body: JSON.stringify({ challengeId, phone, code, purpose }),
+    }),
+
+  resetPasswordWithSms: (phone, challengeId, code, password, confirmPassword) =>
+    request('/auth/password/reset', {
+      method: 'POST',
+      body: JSON.stringify({ phone, challengeId, code, password, confirmPassword }),
+    }),
+
+  requestPasswordResetCode: (phone) =>
+    request('/auth/password/reset/request', {
+      method: 'POST',
+      body: JSON.stringify({ phone }),
+    }),
+
+  register: (name, email, password, phone, confirmPassword, challengeId, code) =>
+    request('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ name, email, password, phone, confirmPassword, challengeId, code }),
+    }),
+
+  requestWhatsappCode: (phone) => authAPI.requestSmsCode(phone, 'login'),
+
+  verifyWhatsappCode: (challengeId, phone, code) => authAPI.verifySmsCode(challengeId, phone, code, 'login'),
 
   logout: () => {
     removeToken();

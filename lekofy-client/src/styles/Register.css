@@ -92,26 +92,6 @@
   margin-top: 2px;
 }
 
-.register-google-wrap {
-  margin-top: 16px;
-  font-size: 13px;
-  text-align: center;
-}
-
-.register-google-btn {
-  width: 100%;
-  background: white;
-  color: #334155;
-  border-radius: 999px;
-  border: 1px solid #d1d5db;
-  box-shadow: 0 8px 18px rgba(148, 163, 184, 0.22);
-}
-
-.register-google-btn:hover {
-  border-color: #94a3b8;
-  transform: translateY(-1px);
-}
-
 @media (max-width: 880px) {
   .register-card {
     grid-template-columns: minmax(0, 1fr);

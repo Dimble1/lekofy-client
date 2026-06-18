@@ -18,6 +18,7 @@ import Settings from './pages/Settings.jsx';
 
 function App() {
   const { page, params } = useRouter();
+  const isAuthPage = page === 'login' || page === 'register';
 
   let content = null;
   if (page === 'login') content = <Login />;
@@ -56,9 +57,9 @@ function App() {
 
   return (
     <>
-      <Navbar />
+      {!isAuthPage && <Navbar />}
       {content}
-      <APIDebug />
+      {!isAuthPage && <APIDebug />}
     </>
   );
 }
