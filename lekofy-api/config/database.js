@@ -14,8 +14,16 @@ if (!connectionUrl) {
 }
 
 const isProduction = process.env.NODE_ENV === 'production';
-const shouldUseSsl =
-  isProduction || connectionUrl?.includes('sslmode=require');
+const shouldUseSsl = isProduction || /sslmode=(require|verify-ca|verify-full)/i.test(connectionUrl);
+
+let normalizedConnectionUrl = connectionUrl;
+try {
+  const parsedUrl = new URL(connectionUrl);
+  parsedUrl.searchParams.delete('sslmode');
+  normalizedConnectionUrl = parsedUrl.toString();
+} catch {
+  normalizedConnectionUrl = connectionUrl;
+}
 
 const commonOptions = {
   dialect: 'postgres',
@@ -38,7 +46,7 @@ const commonOptions = {
 };
 
 const sequelize = connectionUrl
-  ? new Sequelize(connectionUrl, commonOptions)
+  ? new Sequelize(normalizedConnectionUrl, commonOptions)
   : null;
 
 module.exports = sequelize;
