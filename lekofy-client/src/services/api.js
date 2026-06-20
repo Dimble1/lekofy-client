@@ -1,5 +1,6 @@
 ﻿// Р‘Р°Р·РѕРІС‹Р№ URL РґР»СЏ API
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+export const API_URL = rawApiUrl.replace(/\/+$/, '');
 
 // Р¤СѓРЅРєС†РёСЏ РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ С‚РѕРєРµРЅР° РёР· localStorage
 const getToken = () => localStorage.getItem('token');

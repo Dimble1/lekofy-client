@@ -6,8 +6,10 @@ export function APIDebug() {
 
   useEffect(() => {
     const checkAPI = async () => {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-      const pingUrl = apiBase.replace('/api', '/ping');
+      const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace(/\/+$/, '');
+      const pingUrl = apiBase.endsWith('/api')
+        ? `${apiBase.slice(0, -4)}/ping`
+        : `${apiBase}/ping`;
 
       try {
         const response = await fetch(pingUrl);
