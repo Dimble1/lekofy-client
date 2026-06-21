@@ -1,32 +1,36 @@
-<svg width="1040" height="320" viewBox="0 0 1040 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="1160" height="340" viewBox="0 0 1160 340" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="lekofyTextGradient" x1="250" y1="40" x2="830" y2="300" gradientUnits="userSpaceOnUse">
+    <linearGradient id="lekofyTextGradient" x1="260" y1="48" x2="920" y2="300" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#29B6D9" />
       <stop offset="0.55" stop-color="#1A7BD2" />
       <stop offset="1" stop-color="#0A4EC0" />
     </linearGradient>
-    <linearGradient id="lekofyIconLight" x1="110" y1="28" x2="40" y2="178" gradientUnits="userSpaceOnUse">
+    <linearGradient id="lekofyIconLight" x1="120" y1="26" x2="34" y2="196" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#35D0E2" />
       <stop offset="1" stop-color="#0D67CB" />
     </linearGradient>
-    <linearGradient id="lekofyIconDark" x1="92" y1="182" x2="180" y2="240" gradientUnits="userSpaceOnUse">
+    <linearGradient id="lekofyIconDark" x1="94" y1="188" x2="196" y2="250" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#0A69D1" />
       <stop offset="1" stop-color="#08298F" />
     </linearGradient>
   </defs>
 
-  <path d="M46 26V242H200V196H98V26H46Z" fill="url(#lekofyIconLight)" />
-  <path d="M98 188H182L200 242H46L98 188Z" fill="url(#lekofyIconDark)" />
+  <g transform="translate(10 0)">
+    <path d="M50 28V248H208V198H102V28H50Z" fill="url(#lekofyIconLight)" />
+    <path d="M102 188H190L208 248H50L102 188Z" fill="url(#lekofyIconDark)" />
+    <circle cx="126" cy="110" r="16" fill="white" fill-opacity="0.16" />
+    <circle cx="150" cy="84" r="8" fill="white" fill-opacity="0.18" />
+  </g>
 
   <text
-    x="198"
-    y="236"
+    x="228"
+    y="242"
     fill="url(#lekofyTextGradient)"
     font-family="Segoe UI, Arial, sans-serif"
-    font-size="220"
+    font-size="208"
     font-weight="700"
-    letter-spacing="-8"
+    letter-spacing="-7"
   >
-    ekofy
+    Lekofy
   </text>
 </svg>

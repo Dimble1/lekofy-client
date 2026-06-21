@@ -1,6 +1,7 @@
 import Home from './pages/Home';
 import { APIDebug } from './components/APIDebug';
 import { useRouter } from './context/RouterContext.jsx';
+import './App.css';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import CreateAd from './pages/CreateAd.jsx';

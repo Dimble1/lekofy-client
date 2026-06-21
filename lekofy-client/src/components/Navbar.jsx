@@ -62,6 +62,7 @@ function Navbar() {
         <div className="logo" onClick={() => navigate('home')}>
           <span className="brand-logo-shell">
             <img src="/lekofy-logo.svg" alt="Lekofy" className="brand-logo-image" />
+            <span className="brand-wordmark">Lekofy</span>
           </span>
         </div>
 
