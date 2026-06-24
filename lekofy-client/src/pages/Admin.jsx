@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { adminAPI } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import LoadingAnimation from '../components/LoadingAnimation.jsx';
 
 function Admin() {
   const { user, isLoggedIn } = useAuth();
@@ -47,7 +48,15 @@ function Admin() {
   if (!isLoggedIn || !isAdmin) return null;
 
   const renderMain = () => {
-    if (loading) return <div className="loading">Загрузка...</div>;
+    if (loading) {
+      return (
+        <LoadingAnimation
+          message="Загружаем панель администратора..."
+          hint="Собираем данные для выбранного раздела"
+          fullScreen
+        />
+      );
+    }
     if (error) return <div className="empty">{error}</div>;
 
     if (section === 'stats' && data) {

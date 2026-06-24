@@ -2,6 +2,7 @@
 import { chatAPI } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import LoadingAnimation from '../components/LoadingAnimation.jsx';
 import chatEmptyIllustration from '../assets/chat-empty.svg';
 
 const QUICK_REPLIES = ['Здравствуйте! Товар еще в наличии?', 'Можно немного уступить по цене?', 'Когда сможете отправить?', 'Можно фото/видео вживую?'];
@@ -318,7 +319,7 @@ function ChatWindow({ chatId, title, profileUserId, profileName, embedded = fals
       )}
 
       <div className="neo-messages" ref={messagesRef}>
-        {loading && <div className="loading">Загрузка...</div>}
+        {loading && <LoadingAnimation message="Загружаем переписку..." hint="Подтягиваем сообщения и статусы" />}
 
         {!loading && !messages.length && (
           <div className="empty chat-empty">

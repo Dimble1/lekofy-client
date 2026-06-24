@@ -2,6 +2,7 @@
 import { favoritesAPI } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import LoadingAnimation from '../components/LoadingAnimation.jsx';
 import '../styles/Favorites.css';
 
 const priceFormatter = new Intl.NumberFormat('ru-RU');
@@ -146,7 +147,12 @@ function Favorites() {
         ← Назад
       </button>
 
-      {loading && <p className="favorites-state">Загрузка...</p>}
+      {loading && (
+        <LoadingAnimation
+          message="Загрузка избранного..."
+          hint="Проверяем сохраненные объявления"
+        />
+      )}
       {!!error && <p className="favorites-state favorites-state-error">{error}</p>}
       {!loading && !error && !sortedAds.length && (
         <p className="favorites-state">В избранном пока пусто.</p>

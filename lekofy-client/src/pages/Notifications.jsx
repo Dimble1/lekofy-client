@@ -2,6 +2,7 @@
 import { notificationsAPI } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import LoadingAnimation from '../components/LoadingAnimation.jsx';
 
 function Notifications() {
   const { isLoggedIn } = useAuth();
@@ -73,7 +74,7 @@ function Notifications() {
         </div>
       </div>
 
-      {loading && <div className="loading">Загрузка...</div>}
+      {loading && <LoadingAnimation message="Загружаем уведомления..." hint="Проверяем новые события" />}
       {!loading && error && <div className="empty">{error}</div>}
 
       {!loading && !error && !items.length && <div className="empty">Пока нет уведомлений.</div>}

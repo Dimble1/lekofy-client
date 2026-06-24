@@ -2,6 +2,7 @@
 import { chatAPI, profileAPI } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import LoadingAnimation from '../components/LoadingAnimation.jsx';
 import '../styles/Profile.css';
 
 function Profile({ userId }) {
@@ -269,7 +270,11 @@ function Profile({ userId }) {
   if (loading) {
     return (
       <div className="container">
-        <p>Загрузка профиля...</p>
+        <LoadingAnimation
+          message="Загрузка профиля..."
+          hint="Подтягиваем данные пользователя"
+          fullScreen
+        />
       </div>
     );
   }

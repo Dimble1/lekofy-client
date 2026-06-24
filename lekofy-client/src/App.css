@@ -1577,6 +1577,25 @@ body {
   color: #b91c1c;
 }
 
+.loading,
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  padding: 20px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  color: var(--lekofy-muted, #64748b);
+  text-align: center;
+}
+
+.loading {
+  flex-direction: column;
+  gap: 10px;
+}
+
 .lekofy-trust-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }

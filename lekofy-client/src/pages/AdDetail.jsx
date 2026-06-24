@@ -3,6 +3,7 @@ import { adsAPI, favoritesAPI, chatAPI, profileAPI } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { categories } from '../data/categories';
+import LoadingAnimation from '../components/LoadingAnimation.jsx';
 import '../styles/AdDetail.css';
 
 const FavoriteIcon = ({ active }) => (
@@ -410,7 +411,15 @@ function AdDetail({ adId }) {
   }
 
   if (loading) {
-    return <div className="ad-detail-status">Загружаем объявление...</div>;
+    return (
+      <div className="ad-detail-status">
+        <LoadingAnimation
+          message="Загружаем объявление..."
+          hint="Подтягиваем фото, описание и контакты"
+          fullScreen
+        />
+      </div>
+    );
   }
 
   if (error || !ad) {

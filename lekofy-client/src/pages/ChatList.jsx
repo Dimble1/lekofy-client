@@ -2,6 +2,7 @@
 import { chatAPI } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import LoadingAnimation from '../components/LoadingAnimation.jsx';
 import chatEmptyIllustration from '../assets/chat-empty.svg';
 import ChatWindow from './ChatWindow.jsx';
 
@@ -145,7 +146,7 @@ function ChatList({ initialChatId, initialTitle, initialProfileUserId, initialPr
             <button type="button" className={`neo-chip ${filterType === 'active' ? 'on' : ''}`} onClick={() => setFilterType('active')}>Активные</button>
           </div>
 
-          {loading && <div className="loading">Загрузка...</div>}
+          {loading && <LoadingAnimation message="Загружаем чаты..." hint="Поднимаем список диалогов" />}
           {error && <div className="empty">{error}</div>}
 
           {!loading && !error && !visibleChats.length && (

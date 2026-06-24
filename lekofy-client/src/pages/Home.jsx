@@ -3,6 +3,7 @@ import { adsAPI, favoritesAPI } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { categories } from '../data/categories';
+import LoadingAnimation from '../components/LoadingAnimation.jsx';
 
 const NAV_LINKS = [
   { label: 'Категории', target: 'categories' },
@@ -521,7 +522,12 @@ function Home() {
           <span className="lekofy-section__count">{sectionCount} результатов</span>
         </div>
 
-        {loading && <div className="lekofy-state">Загружаем объявления...</div>}
+        {loading && (
+          <LoadingAnimation
+            message="Загружаем объявления..."
+            hint="Собираем свежие предложения и подстраиваем выдачу под вас"
+          />
+        )}
         {error && <div className="lekofy-state lekofy-state--error">{error}</div>}
 
         {!loading && !error && (

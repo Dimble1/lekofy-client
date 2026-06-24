@@ -3,6 +3,7 @@ import { adsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useRouter } from '../context/RouterContext.jsx';
 import { categories } from '../data/categories';
+import LoadingAnimation from '../components/LoadingAnimation.jsx';
 import '../styles/MyAds.css';
 
 const STATUS_LABELS = {
@@ -358,7 +359,12 @@ function MyAds() {
           <span>{user?.name ? `Профиль: ${user.name}` : 'Ваши публикации'}</span>
         </div>
 
-        {loading && <div className="my-ads-empty">Загружаем ваши объявления...</div>}
+        {loading && (
+          <LoadingAnimation
+            message="Загружаем ваши объявления..."
+            hint="Собираем список публикаций"
+          />
+        )}
         {!loading && error && <div className="my-ads-empty my-ads-error">{error}</div>}
         {!loading && !error && deleteState.error && <div className="my-ads-empty my-ads-error">{deleteState.error}</div>}
 
