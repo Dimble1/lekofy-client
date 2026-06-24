@@ -1,11 +1,38 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { adsAPI, favoritesAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useRouter } from '../context/RouterContext.jsx';
 import { categories } from '../data/categories';
 import '../styles/Home.css';
 
-const POPULAR_SEARCHES = ['iPhone', 'BMW', 'Квартира', 'Ноутбук', 'Диван', 'Работа'];
+const POPULAR_SEARCHES = ['iPhone', 'Квартира', 'BMW', 'Ноутбук', 'PS5', 'Диван', 'Вакансии'];
+
+const FOOTER_COLUMNS = [
+  {
+    title: 'Покупателям',
+    items: ['Как купить', 'Безопасность', 'Доставка'],
+  },
+  {
+    title: 'Продавцам',
+    items: ['Как продать', 'Правила', 'Тарифы'],
+  },
+  {
+    title: 'О компании',
+    items: ['О нас', 'Контакты', 'Блог'],
+  },
+  {
+    title: 'Помощь',
+    items: ['FAQ', 'Поддержка', 'Пожаловаться'],
+  },
+];
+
+const COLLECTIONS = [
+  { title: 'Для студентов', count: '1 342 объявления', icon: 'fa-school', tint: 'blue' },
+  { title: 'До 10 000 сом', count: '2 843 объявления', icon: 'fa-headphones', tint: 'sand' },
+  { title: 'Для дома', count: '3 912 объявлений', icon: 'fa-couch', tint: 'mint' },
+  { title: 'Новинки недели', count: '1 523 объявления', icon: 'fa-gamepad', tint: 'violet' },
+  { title: 'Для бизнеса', count: '987 объявлений', icon: 'fa-briefcase', tint: 'lavender' },
+];
 
 const QUICK_FILTERS = [
   { id: 'recent', label: 'Сначала новые', icon: 'fa-bolt' },
@@ -15,6 +42,10 @@ const QUICK_FILTERS = [
 ];
 
 const currencyFormatter = new Intl.NumberFormat('ru-RU');
+
+function normalizeText(value) {
+  return String(value || '').trim().toLowerCase();
+}
 
 function parsePrice(value) {
   const numeric = Number(String(value ?? '').replace(/[^\d.-]/g, ''));
@@ -27,11 +58,16 @@ function formatPrice(value) {
   return `${currencyFormatter.format(numeric)} сом`;
 }
 
-function formatDate(value) {
+function formatRelative(value) {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short' }).format(date);
+  const deltaMinutes = Math.max(1, Math.floor((Date.now() - date.getTime()) / 60000));
+  if (deltaMinutes < 60) return `${deltaMinutes} мин назад`;
+  const deltaHours = Math.floor(deltaMinutes / 60);
+  if (deltaHours < 24) return `${deltaHours} ч назад`;
+  const deltaDays = Math.floor(deltaHours / 24);
+  return `${deltaDays} дн назад`;
 }
 
 function getImage(ad) {
@@ -40,7 +76,7 @@ function getImage(ad) {
 }
 
 function getCity(ad) {
-  return ad?.city || ad?.location || ad?.district || 'Кыргызстан';
+  return ad?.city || ad?.location || ad?.district || 'Москва';
 }
 
 function getPublishedAt(ad) {
@@ -60,10 +96,6 @@ function isPremiumAd(ad) {
   return Boolean(ad?.featured || ad?.premium || ad?.isPremium || ad?.boosted);
 }
 
-function normalizeText(value) {
-  return String(value || '').trim().toLowerCase();
-}
-
 function uniqueById(list) {
   const seen = new Set();
   return list.filter((item) => {
@@ -74,7 +106,7 @@ function uniqueById(list) {
   });
 }
 
-function matchSearch(ad, query, city, categoryId) {
+function matchesFilters(ad, query, city, categoryId) {
   const normalizedQuery = normalizeText(query);
   const normalizedCity = normalizeText(city);
   const adCity = normalizeText(getCity(ad));
@@ -97,47 +129,12 @@ function matchSearch(ad, query, city, categoryId) {
   return categoryMatch && cityMatch && textMatch;
 }
 
-function getCategoryIcon(categoryId) {
-  const iconByCategory = {
-    cars: 'fa-car-side',
-    electronics: 'fa-mobile-screen',
-    real_estate: 'fa-house',
-    clothing: 'fa-shirt',
-    services: 'fa-screwdriver-wrench',
-    jobs: 'fa-briefcase',
-    home_garden: 'fa-seedling',
-    sports: 'fa-person-running',
-    kids: 'fa-baby',
-    pets: 'fa-paw',
-  };
-
-  return iconByCategory[categoryId] || 'fa-layer-group';
-}
-
-function getCategoryStats(ads) {
-  const counts = new Map();
-  for (const ad of ads) {
-    const key = normalizeText(ad?.category);
-    if (!key) continue;
-    counts.set(key, (counts.get(key) || 0) + 1);
-  }
-
-  return categories
-    .map((category) => ({
-      ...category,
-      icon: category.icon || getCategoryIcon(category.id),
-      count: counts.get(category.id) || 0,
-    }))
-    .filter((category) => category.count > 0)
-    .slice(0, 8);
-}
-
-function HomeCardSkeleton({ compact = false }) {
+function HomeCardSkeleton() {
   return (
-    <article className={`home-card home-card--skeleton ${compact ? 'home-card--compact' : ''}`}>
+    <article className="home-card home-card--skeleton">
       <div className="home-card__media">
         <div className="home-skeleton home-skeleton--media" />
-        <div className="home-skeleton-pill" />
+        <div className="home-skeleton home-skeleton--badge" />
       </div>
       <div className="home-card__body">
         <div className="home-skeleton home-skeleton--price" />
@@ -149,28 +146,26 @@ function HomeCardSkeleton({ compact = false }) {
   );
 }
 
-function HomeCard({
-  ad,
-  onOpen,
-  onFavorite,
-  favoriteBusy,
-  isFavorite,
-  premium = false,
-  compact = false,
-}) {
+function ListingCard({ ad, onOpen, onFavorite, favoriteBusy, isFavorite, premium = false }) {
   const image = getImage(ad);
   const city = getCity(ad);
   const publishedAt = getPublishedAt(ad);
 
   return (
-    <article className={`home-card ${premium ? 'home-card--premium' : ''} ${compact ? 'home-card--compact' : ''}`}>
+    <article className={`home-card ${premium ? 'home-card--premium' : ''}`}>
       <button type="button" className="home-card__media" onClick={() => onOpen(ad)} aria-label={ad.title}>
-        {image ? <img src={image} alt={ad.title} /> : <div className="home-card__placeholder">Нет фото</div>}
-        <div className="home-card__chip">
+        {image ? (
+          <img src={image} alt={ad.title} />
+        ) : (
+          <div className="home-card__placeholder">
+            <i className="fa-solid fa-image" aria-hidden="true" />
+          </div>
+        )}
+        <div className="home-card__badge">
           <i className={`fa-solid ${premium ? 'fa-star' : 'fa-circle-check'}`} aria-hidden="true" />
-          <span>{premium ? 'Premium' : 'Проверено'}</span>
+          <span>{premium ? 'PREMIUM' : 'Проверено'}</span>
         </div>
-        <div className="home-card__time">{formatDate(publishedAt) || 'Сегодня'}</div>
+        <div className="home-card__time">{formatRelative(publishedAt) || 'Сегодня'}</div>
       </button>
 
       <div className="home-card__body">
@@ -196,23 +191,22 @@ function HomeCard({
             <i className="fa-solid fa-location-dot" aria-hidden="true" />
             {city}
           </span>
-          {ad?.description ? <p>{ad.description}</p> : null}
         </div>
       </div>
     </article>
   );
 }
 
-function SectionHeader({ kicker, title, subtitle, action, actionLabel }) {
+function SectionHeader({ kicker, title, subtitle, actionLabel, onAction }) {
   return (
     <div className="home-section__header">
       <div>
-        {kicker ? <p className="home-section__kicker">{kicker}</p> : null}
+        <p className="home-section__kicker">{kicker}</p>
         <h2>{title}</h2>
         {subtitle ? <p className="home-section__subtitle">{subtitle}</p> : null}
       </div>
-      {action ? (
-        <button type="button" className="home-section__action" onClick={action}>
+      {onAction ? (
+        <button type="button" className="home-section__action" onClick={onAction}>
           {actionLabel || 'Смотреть все'}
           <i className="fa-solid fa-arrow-right" aria-hidden="true" />
         </button>
@@ -223,19 +217,25 @@ function SectionHeader({ kicker, title, subtitle, action, actionLabel }) {
 
 function Home() {
   const { navigate } = useRouter();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
+  const categoryRailRef = useRef(null);
 
   const [ads, setAds] = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
+  const [recommended, setRecommended] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [draftQuery, setDraftQuery] = useState('');
-  const [city, setCity] = useState('');
+  const [city, setCity] = useState('Москва');
   const [categoryId, setCategoryId] = useState('');
   const [activeQuickFilter, setActiveQuickFilter] = useState('recent');
   const [favoriteIds, setFavoriteIds] = useState(() => new Set());
   const [favoriteBusyId, setFavoriteBusyId] = useState(null);
+
+  useEffect(() => {
+    document.body.classList.add('home-view');
+    return () => document.body.classList.remove('home-view');
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -249,11 +249,11 @@ function Home() {
         ]);
 
         setAds(Array.isArray(adsData) ? adsData : []);
-        setRecommendations(Array.isArray(recommendedData) ? recommendedData : []);
+        setRecommended(Array.isArray(recommendedData) ? recommendedData : []);
       } catch (loadError) {
         setError(loadError?.message || 'Не удалось загрузить объявления');
         setAds([]);
-        setRecommendations([]);
+        setRecommended([]);
       } finally {
         setLoading(false);
       }
@@ -281,78 +281,94 @@ function Home() {
     loadFavorites();
   }, [isLoggedIn]);
 
-  const categoryStats = useMemo(() => getCategoryStats(ads), [ads]);
+  const categoryCards = useMemo(
+    () => categories.slice(0, 7).map((category) => ({
+      ...category,
+      count: ads.filter((ad) => normalizeText(ad?.category) === normalizeText(category.id)).length,
+    })),
+    [ads],
+  );
 
   const visibleAds = useMemo(() => {
-    const list = ads.filter((ad) => matchSearch(ad, query, city, categoryId));
+    const filtered = ads.filter((ad) => matchesFilters(ad, query, city, categoryId));
 
     switch (activeQuickFilter) {
       case 'popular':
-        return [...list].sort((a, b) => getPopularityScore(b) - getPopularityScore(a));
+        return [...filtered].sort((a, b) => getPopularityScore(b) - getPopularityScore(a));
       case 'with_photo':
-        return list.filter((ad) => getImage(ad));
+        return filtered.filter((ad) => getImage(ad));
       case 'budget':
-        return list.filter((ad) => parsePrice(ad?.price) > 0 && parsePrice(ad?.price) <= 50000);
+        return filtered.filter((ad) => parsePrice(ad?.price) > 0 && parsePrice(ad?.price) <= 50000);
       case 'recent':
       default:
-        return [...list].sort((a, b) => new Date(getPublishedAt(b) || 0) - new Date(getPublishedAt(a) || 0));
+        return [...filtered].sort((a, b) => new Date(getPublishedAt(b) || 0) - new Date(getPublishedAt(a) || 0));
     }
-  }, [activeQuickFilter, ads, categoryId, city, query]);
+  }, [ads, activeQuickFilter, categoryId, city, query]);
 
   const freshAds = useMemo(() => visibleAds.slice(0, 8), [visibleAds]);
 
   const premiumAds = useMemo(() => {
     const premiumPool = ads.filter(isPremiumAd);
-    const fallbackPool = [...ads]
-      .sort((a, b) => getPopularityScore(b) - getPopularityScore(a))
-      .slice(0, 6);
-    return uniqueById([...premiumPool, ...fallbackPool]).slice(0, 6);
+    const fallbackPool = [...ads].sort((a, b) => getPopularityScore(b) - getPopularityScore(a));
+    return uniqueById([...premiumPool, ...fallbackPool]).slice(0, 5);
   }, [ads]);
 
-  const topCity = useMemo(() => {
-    const cities = new Map();
+  const nearbyBuckets = useMemo(() => {
+    const byCategory = new Map();
+
     for (const ad of ads) {
-      const key = getCity(ad);
-      cities.set(key, (cities.get(key) || 0) + 1);
+      const key = normalizeText(ad?.category);
+      if (!key) continue;
+
+      const list = byCategory.get(key) || [];
+      list.push(ad);
+      byCategory.set(key, list);
     }
 
-    let winner = '';
+    return categoryCards
+      .map((category) => {
+        const list = byCategory.get(category.id) || [];
+        const topAd = [...list].sort((a, b) => getPopularityScore(b) - getPopularityScore(a))[0];
+        return {
+          id: category.id,
+          title: category.label,
+          count: `${list.length || 0} объявлений`,
+          icon: category.icon,
+          image: getImage(topAd),
+        };
+      })
+      .filter((bucket) => bucket.count !== '0 объявлений')
+      .slice(0, 6);
+  }, [ads, categoryCards]);
+
+  const heroAds = useMemo(() => uniqueById([...premiumAds, ...freshAds, ...recommended]).slice(0, 3), [freshAds, premiumAds, recommended]);
+
+  const topCity = useMemo(() => {
+    const counts = new Map();
+    for (const ad of ads) {
+      const name = getCity(ad);
+      counts.set(name, (counts.get(name) || 0) + 1);
+    }
+
+    let best = 'Москва';
     let max = 0;
-    for (const [name, count] of cities.entries()) {
+    for (const [name, count] of counts.entries()) {
       if (count > max) {
-        winner = name;
+        best = name;
         max = count;
       }
     }
-
-    return winner || 'рядом';
+    return best;
   }, [ads]);
 
-  const nearbyAds = useMemo(() => {
-    const source = recommendations.length ? recommendations : ads;
-    const normalizedCity = normalizeText(city || topCity);
-    const list = source.filter((ad) => normalizeText(getCity(ad)).includes(normalizedCity));
-    const fallback = uniqueById([...list, ...source]).sort((a, b) => getPopularityScore(b) - getPopularityScore(a));
-    return fallback.slice(0, 8);
-  }, [ads, city, recommendations, topCity]);
-
-  const heroStats = useMemo(
-    () => [
-      { label: 'Объявлений сейчас', value: ads.length },
-      { label: 'Премиум в подборке', value: premiumAds.length },
-      { label: 'Город в фокусе', value: city || topCity || 'Все' },
-    ],
-    [ads.length, city, premiumAds.length, topCity],
-  );
-
-  const heroPreview = useMemo(() => freshAds.slice(0, 3), [freshAds]);
+  const collections = useMemo(() => COLLECTIONS, []);
 
   const handleOpenAd = (ad) => {
     if (!ad?.id) return;
     navigate('ad-detail', { id: ad.id });
   };
 
-  const toggleFavorite = async (ad) => {
+  const handleFavorite = async (ad) => {
     if (!ad?.id) return;
 
     if (!isLoggedIn) {
@@ -382,7 +398,7 @@ function Home() {
     }
   };
 
-  const applySearch = (event) => {
+  const handleSearchSubmit = (event) => {
     event.preventDefault();
     setQuery(draftQuery.trim());
   };
@@ -390,33 +406,35 @@ function Home() {
   const clearFilters = () => {
     setDraftQuery('');
     setQuery('');
-    setCity('');
+    setCity('Москва');
     setCategoryId('');
     setActiveQuickFilter('recent');
   };
 
-  const setPopularSearch = (value) => {
-    setDraftQuery(value);
-    setQuery(value);
+  const scrollCategories = (direction) => {
+    const node = categoryRailRef.current;
+    if (!node) return;
+    node.scrollBy({ left: direction * 360, behavior: 'smooth' });
   };
 
   return (
-    <main className="home-page-v2">
-      <section className="home-hero-v2">
-        <div className="home-hero-v2__copy">
-          <div className="home-hero-v2__eyebrow">
-            <span className="home-hero-v2__eyebrow-dot" />
-            Lekofy marketplace
-          </div>
+    <main className="home-page">
+      <section className="home-hero">
+        <div className="home-hero__copy">
+          <h1 className="home-hero__title">
+            Найдите всё,
+            <br />
+            что нужно
+            <br />
+            <span>рядом с вами</span>
+          </h1>
 
-          <h1>Найдите нужное быстро. Сразу по живым объявлениям.</h1>
-          <p className="home-hero-v2__subtitle">
-            Спрос, новые публикации и премиальные предложения собраны в одном экране.
-            Поиск работает первым, а карточки сразу показывают активность площадки.
+          <p className="home-hero__subtitle">
+            Тысячи объявлений от проверенных пользователей каждый день
           </p>
 
-          <form className="home-search-v2" onSubmit={applySearch}>
-            <div className="home-search-v2__field home-search-v2__field--wide">
+          <form className="home-search" onSubmit={handleSearchSubmit}>
+            <div className="home-search__field home-search__field--wide">
               <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
               <input
                 type="search"
@@ -426,13 +444,12 @@ function Home() {
                   setDraftQuery(value);
                   setQuery(value);
                 }}
-                placeholder="Искать iPhone, BMW, квартиру..."
+                placeholder="Поиск объявлений..."
                 aria-label="Поиск по объявлениям"
               />
             </div>
 
-            <div className="home-search-v2__field">
-              <i className="fa-solid fa-layer-group" aria-hidden="true" />
+            <div className="home-search__field">
               <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
                 <option value="">Все категории</option>
                 {categories.map((category) => (
@@ -441,180 +458,109 @@ function Home() {
                   </option>
                 ))}
               </select>
+              <i className="fa-solid fa-chevron-down" aria-hidden="true" />
             </div>
 
-            <div className="home-search-v2__field">
-              <i className="fa-solid fa-location-dot" aria-hidden="true" />
-              <input
-                type="text"
-                value={city}
-                onChange={(event) => setCity(event.target.value)}
-                placeholder="Город"
-                aria-label="Город"
-              />
+            <div className="home-search__field">
+              <select value={city} onChange={(event) => setCity(event.target.value)}>
+                <option value="Москва">Москва и МО</option>
+                <option value="Санкт-Петербург">Санкт-Петербург</option>
+                <option value="Бишкек">Бишкек</option>
+                <option value="Алматы">Алматы</option>
+              </select>
+              <i className="fa-solid fa-chevron-down" aria-hidden="true" />
             </div>
 
-            <button type="submit" className="home-search-v2__button">
+            <button type="submit" className="home-search__button">
               Найти
             </button>
           </form>
 
-          <div className="home-popular-searches">
-            <span>Популярные запросы</span>
-            <div className="home-popular-searches__chips">
+          <div className="home-popular">
+            <span>Популярные запросы:</span>
+            <div className="home-popular__chips">
               {POPULAR_SEARCHES.map((item) => (
-                <button key={item} type="button" onClick={() => setPopularSearch(item)}>
+                <button
+                  key={item}
+                  type="button"
+                  className="home-popular__chip"
+                  onClick={() => {
+                    setDraftQuery(item);
+                    setQuery(item);
+                  }}
+                >
                   {item}
                 </button>
               ))}
             </div>
           </div>
+        </div>
 
-          <div className="home-hero-v2__quick">
-            <button type="button" className="home-hero-v2__reset" onClick={clearFilters}>
-              Сбросить фильтры
-            </button>
-            <div className="home-hero-v2__chips">
-              {QUICK_FILTERS.map((filter) => (
+        <div className="home-hero__art" aria-hidden="true">
+          <div className="home-hero__art-glow" />
+          <div className="home-hero__art-item home-hero__art-item--chair">
+            {heroAds[0]?.images?.[0] ? <img src={heroAds[0].images[0]} alt="" /> : <i className="fa-solid fa-couch" />}
+          </div>
+          <div className="home-hero__art-item home-hero__art-item--plant">
+            {heroAds[1]?.images?.[0] ? <img src={heroAds[1].images[0]} alt="" /> : <i className="fa-solid fa-seedling" />}
+          </div>
+          <div className="home-hero__art-item home-hero__art-item--car">
+            {heroAds[2]?.images?.[0] ? <img src={heroAds[2].images[0]} alt="" /> : <i className="fa-solid fa-car-side" />}
+          </div>
+        </div>
+      </section>
+
+      <section className="home-categories" id="categories">
+        <div className="home-categories__head">
+          <button type="button" className="home-rail-arrow" onClick={() => scrollCategories(-1)} aria-label="Прокрутить категории влево">
+            <i className="fa-solid fa-chevron-left" aria-hidden="true" />
+          </button>
+
+          <div className="home-category-rail" ref={categoryRailRef}>
+            {(categoryCards.length ? categoryCards : categories.slice(0, 7)).map((category) => {
+              const active = categoryId === category.id;
+              return (
                 <button
-                  key={filter.id}
+                  key={category.id}
                   type="button"
-                  className={`home-pill ${activeQuickFilter === filter.id ? 'home-pill--active' : ''}`}
-                  onClick={() => setActiveQuickFilter(filter.id)}
+                  className={`home-category-card ${active ? 'is-active' : ''}`}
+                  onClick={() => setCategoryId(active ? '' : category.id)}
                 >
-                  <i className={`fa-solid ${filter.icon}`} aria-hidden="true" />
-                  <span>{filter.label}</span>
+                  <span className="home-category-card__icon">
+                    <i className={`fa-solid ${category.icon || 'fa-layer-group'}`} aria-hidden="true" />
+                  </span>
+                  <span className="home-category-card__label">{category.label}</span>
                 </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <aside className="home-hero-v2__panel">
-          <div className="home-hero-v2__panel-head">
-            <div>
-              <p>Пульс площадки</p>
-              <strong>{ads.length}</strong>
-              <span>активных объявлений</span>
-            </div>
-            <div className="home-hero-v2__badge">
-              <i className="fa-solid fa-bolt" aria-hidden="true" />
-              Live feed
-            </div>
+              );
+            })}
           </div>
 
-          <div className="home-hero-v2__stats">
-            {heroStats.map((stat) => (
-              <div key={stat.label} className="home-hero-v2__stat">
-                <span>{stat.label}</span>
-                <strong>{stat.value}</strong>
-              </div>
-            ))}
-          </div>
-
-          <div className="home-hero-v2__preview-list">
-            {loading
-              ? Array.from({ length: 3 }).map((_, index) => (
-                  <div key={index} className="home-hero-v2__preview home-hero-v2__preview--skeleton">
-                    <div className="home-skeleton home-skeleton--thumb" />
-                    <div className="home-hero-v2__preview-copy">
-                      <div className="home-skeleton home-skeleton--line" />
-                      <div className="home-skeleton home-skeleton--line home-skeleton--short" />
-                    </div>
-                  </div>
-                ))
-              : heroPreview.map((ad) => (
-                  <button
-                    key={ad.id}
-                    type="button"
-                    className="home-hero-v2__preview"
-                    onClick={() => handleOpenAd(ad)}
-                  >
-                    {getImage(ad) ? (
-                      <img src={getImage(ad)} alt={ad.title} />
-                    ) : (
-                      <span className="home-hero-v2__preview-fallback">•</span>
-                    )}
-                    <div className="home-hero-v2__preview-copy">
-                      <strong>{ad.title}</strong>
-                      <span>{formatPrice(ad.price)}</span>
-                    </div>
-                  </button>
-                ))}
-          </div>
-        </aside>
-      </section>
-
-      <section className="home-section-v2 home-section-v2--categories">
-        <SectionHeader
-          kicker="Категории"
-          title="Быстрый переход к самым востребованным разделам"
-          subtitle="Короткая горизонтальная навигация вместо крупной карточной стены."
-        />
-
-        <div className="home-category-rail" role="navigation" aria-label="Категории">
-          {loading
-            ? Array.from({ length: 8 }).map((_, index) => (
-                <div key={index} className="home-category-rail__item home-category-rail__item--skeleton">
-                  <div className="home-skeleton home-skeleton--icon" />
-                  <div className="home-skeleton home-skeleton--label" />
-                </div>
-              ))
-            : categoryStats.length
-              ? categoryStats.map((category) => {
-                  const active = categoryId === category.id;
-                  return (
-                    <button
-                      key={category.id}
-                      type="button"
-                      className={`home-category-rail__item ${active ? 'is-active' : ''}`}
-                      onClick={() => setCategoryId(active ? '' : category.id)}
-                    >
-                      <span className="home-category-rail__icon">
-                        <i className={`fa-solid ${category.icon}`} aria-hidden="true" />
-                      </span>
-                      <span className="home-category-rail__label">{category.label}</span>
-                      <span className="home-category-rail__count">{category.count}</span>
-                    </button>
-                  );
-                })
-              : categories.slice(0, 8).map((category) => (
-                  <button
-                    key={category.id}
-                    type="button"
-                    className={`home-category-rail__item ${categoryId === category.id ? 'is-active' : ''}`}
-                    onClick={() => setCategoryId(categoryId === category.id ? '' : category.id)}
-                  >
-                    <span className="home-category-rail__icon">
-                      <i className={`fa-solid ${category.icon || 'fa-layer-group'}`} aria-hidden="true" />
-                    </span>
-                    <span className="home-category-rail__label">{category.label}</span>
-                    <span className="home-category-rail__count">0</span>
-                  </button>
-                ))}
+          <button type="button" className="home-rail-arrow" onClick={() => scrollCategories(1)} aria-label="Прокрутить категории вправо">
+            <i className="fa-solid fa-chevron-right" aria-hidden="true" />
+          </button>
         </div>
       </section>
 
-      <section className="home-section-v2 home-section-v2--fresh" id="fresh">
+      <section className="home-section" id="fresh">
         <SectionHeader
           kicker="Свежие объявления"
-          title="Первые карточки видны сразу на первом экране"
-          subtitle={`${freshAds.length} объявлений в текущем фильтре`}
-          action={() => setActiveQuickFilter('recent')}
-          actionLabel="Сначала новые"
+          title="Свежие объявления"
+          subtitle="Новое каждый день"
+          actionLabel="Смотреть все"
+          onAction={() => navigate('home')}
         />
 
         {error ? <div className="home-state home-state--error">{error}</div> : null}
 
         <div className="home-grid">
           {loading
-            ? Array.from({ length: 8 }).map((_, index) => <HomeCardSkeleton key={index} />)
+            ? Array.from({ length: 5 }).map((_, index) => <HomeCardSkeleton key={index} />)
             : freshAds.map((ad) => (
-                <HomeCard
+                <ListingCard
                   key={ad.id}
                   ad={ad}
                   onOpen={handleOpenAd}
-                  onFavorite={toggleFavorite}
+                  onFavorite={handleFavorite}
                   favoriteBusy={favoriteBusyId === ad.id}
                   isFavorite={favoriteIds.has(ad.id)}
                 />
@@ -622,23 +568,25 @@ function Home() {
         </div>
       </section>
 
-      <section className="home-section-v2 home-section-v2--premium" id="premium">
+      <section className="home-section home-section--premium" id="premium">
         <SectionHeader
-          kicker="Premium"
-          title="Выделенные предложения с более сильной подачей"
-          subtitle="Эта зона визуально отличается, но не перегружает ленту."
+          kicker="Premium объявления"
+          title="Premium объявления"
+          subtitle="Выделенные объявления от проверенных продавцов"
+          actionLabel="Смотреть все"
+          onAction={() => navigate('home')}
         />
 
-        <div className="home-grid home-grid--premium">
+        <div className="home-strip">
           {loading
-            ? Array.from({ length: 6 }).map((_, index) => <HomeCardSkeleton key={index} />)
+            ? Array.from({ length: 5 }).map((_, index) => <HomeCardSkeleton key={index} />)
             : premiumAds.map((ad) => (
-                <HomeCard
+                <ListingCard
                   key={ad.id}
                   ad={ad}
                   premium
                   onOpen={handleOpenAd}
-                  onFavorite={toggleFavorite}
+                  onFavorite={handleFavorite}
                   favoriteBusy={favoriteBusyId === ad.id}
                   isFavorite={favoriteIds.has(ad.id)}
                 />
@@ -646,43 +594,96 @@ function Home() {
         </div>
       </section>
 
-      <section className="home-section-v2 home-section-v2--nearby" id="nearby">
+      <section className="home-section" id="nearby">
         <SectionHeader
-          kicker="Популярно рядом"
-          title={`Что чаще всего смотрят в ${city || topCity}`}
-          subtitle="Карточки идут горизонтально на мобильных и не ломают плотность экрана."
+          kicker="Популярно рядом с вами"
+          title={`Популярно рядом с вами`}
+          subtitle={`Смотрят чаще всего в ${city || topCity}`}
+          actionLabel="Смотреть все"
+          onAction={() => navigate('home')}
         />
 
-        <div className="home-nearby-row">
+        <div className="home-nearby">
           {loading
-            ? Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="home-nearby-row__item home-nearby-row__item--skeleton">
+            ? Array.from({ length: 6 }).map((_, index) => (
+                <div key={index} className="home-nearby__card home-nearby__card--skeleton">
                   <div className="home-skeleton home-skeleton--nearby-thumb" />
-                  <div className="home-nearby-row__copy">
+                  <div className="home-nearby__copy">
                     <div className="home-skeleton home-skeleton--line" />
                     <div className="home-skeleton home-skeleton--line home-skeleton--short" />
                   </div>
                 </div>
               ))
-            : nearbyAds.map((ad) => (
-                <button
-                  key={ad.id}
-                  type="button"
-                  className="home-nearby-row__item"
-                  onClick={() => handleOpenAd(ad)}
-                >
-                  <div className="home-nearby-row__thumb">
-                    {getImage(ad) ? <img src={getImage(ad)} alt={ad.title} /> : <span>•</span>}
+            : nearbyBuckets.map((bucket) => (
+                <button key={bucket.id} type="button" className="home-nearby__card">
+                  <div className="home-nearby__thumb">
+                    {bucket.image ? <img src={bucket.image} alt="" /> : <i className={`fa-solid ${bucket.icon}`} aria-hidden="true" />}
                   </div>
-                  <div className="home-nearby-row__copy">
-                    <strong>{ad.title}</strong>
-                    <span>{getCity(ad)}</span>
-                    <small>{formatPrice(ad.price)}</small>
+                  <div className="home-nearby__copy">
+                    <strong>{bucket.title}</strong>
+                    <span>{bucket.count}</span>
                   </div>
                 </button>
               ))}
         </div>
       </section>
+
+      <section className="home-section" id="collections">
+        <SectionHeader kicker="Подборки" title="Подборки" subtitle="Поддерживает атмосферу живого маркетплейса" />
+
+        <div className="home-collections">
+          {collections.map((item) => (
+            <button key={item.title} type="button" className={`home-collection home-collection--${item.tint}`}>
+              <div className="home-collection__copy">
+                <strong>{item.title}</strong>
+                <span>{item.count}</span>
+              </div>
+              <div className="home-collection__icon">
+                <i className={`fa-solid ${item.icon}`} aria-hidden="true" />
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <footer className="home-footer">
+        <div className="home-footer__brand">
+          <img src="/lekofy-logo.svg" alt="Lekofy" className="home-footer__logo" />
+          <p>Маркетплейс объявлений для всей России</p>
+          <div className="home-footer__socials" aria-label="Социальные сети">
+            <span><i className="fa-brands fa-vk" /></span>
+            <span><i className="fa-brands fa-telegram" /></span>
+            <span><i className="fa-brands fa-instagram" /></span>
+            <span><i className="fa-brands fa-youtube" /></span>
+          </div>
+        </div>
+
+        <div className="home-footer__columns">
+          {FOOTER_COLUMNS.map((column) => (
+            <div key={column.title} className="home-footer__column">
+              <h3>{column.title}</h3>
+              {column.items.map((item) => (
+                <button key={item} type="button">{item}</button>
+              ))}
+            </div>
+          ))}
+        </div>
+
+        <div className="home-footer__subscribe">
+          <h3>Будьте в курсе</h3>
+          <p>Получайте подборки лучших объявлений на почту</p>
+          <div className="home-footer__subscribe-row">
+            <input type="email" placeholder="Ваш email" aria-label="Email" />
+            <button type="button">Подписаться</button>
+          </div>
+        </div>
+      </footer>
+
+      <div className="home-footer__legal">
+        <span>© 2024 Lekofy. Все права защищены</span>
+        <a href="#fresh">Пользовательское соглашение</a>
+        <a href="#fresh">Политика конфиденциальности</a>
+      </div>
     </main>
   );
 }

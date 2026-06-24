@@ -12,6 +12,7 @@ function Navbar() {
   const { isLoggedIn, user } = useAuth();
   const { navigate, page } = useRouter();
   const actionLabel = 'Подать объявление';
+  const isHome = page === 'home';
 
   const scrollToSection = (target) => {
     const go = () => {
@@ -29,6 +30,71 @@ function Navbar() {
 
     go();
   };
+
+  if (isHome) {
+    return (
+      <header className="home-topbar">
+        <div className="home-topbar__inner">
+          <button type="button" className="home-brand" onClick={() => navigate('home')} aria-label="Lekofy">
+            <img src="/lekofy-logo.svg" alt="Lekofy" />
+            <span>Lekofy</span>
+          </button>
+
+          <button type="button" className="home-location">
+            <i className="fa-solid fa-location-dot" aria-hidden="true" />
+            <span>Москва</span>
+            <i className="fa-solid fa-chevron-down" aria-hidden="true" />
+          </button>
+
+          <div className="home-actions">
+            <button
+              type="button"
+              className="home-action-link"
+              onClick={() => (isLoggedIn ? navigate('favorites') : navigate('login'))}
+            >
+              Избранное
+            </button>
+            <button
+              type="button"
+              className="home-action-link"
+              onClick={() => (isLoggedIn ? navigate('chat') : navigate('login'))}
+            >
+              Сообщения <span className="home-action-link__badge">3</span>
+            </button>
+            <button
+              type="button"
+              className="home-icon-btn"
+              onClick={() => (isLoggedIn ? navigate('notifications') : navigate('login'))}
+              aria-label="Уведомления"
+            >
+              <i className="fa-regular fa-bell" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="home-avatar"
+              onClick={() => (isLoggedIn ? navigate('profile', { userId: user?.id }) : navigate('login'))}
+              aria-label={isLoggedIn ? 'Профиль' : 'Войти'}
+              title={isLoggedIn ? user?.name || 'Профиль' : 'Войти'}
+            >
+              {user?.avatarUrl || user?.avatar ? (
+                <img src={user.avatarUrl || user.avatar} alt={user?.name || 'Профиль'} />
+              ) : (
+                <span>{(user?.name || 'U').charAt(0).toUpperCase()}</span>
+              )}
+            </button>
+            <button
+              type="button"
+              className="home-primary"
+              onClick={() => (isLoggedIn ? navigate('publish') : navigate('login'))}
+            >
+              <i className="fa-solid fa-plus" aria-hidden="true" />
+              {actionLabel}
+            </button>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="lekofy-header">
