@@ -112,9 +112,7 @@ function Register() {
     <main className="auth-page">
       <div className="auth-topbar">
         <button type="button" className="auth-brand" onClick={() => navigate('home')}>
-          <span className="auth-brand-name">
-            <strong>Lekofy</strong>
-          </span>
+          <img src="/lekofy-logo.png" alt="Lekofy" className="auth-brand-logo" />
         </button>
 
         <div className="auth-topnav">

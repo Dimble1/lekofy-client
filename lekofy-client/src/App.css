@@ -785,8 +785,8 @@ body {
 
 .lekofy-brand__logo {
   display: block;
-  width: 44px;
-  height: 44px;
+  height: 40px;
+  width: auto;
   object-fit: contain;
 }
 

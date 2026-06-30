@@ -84,13 +84,10 @@
 }
 
 .auth-brand-logo {
-  width: 40px;
   height: 40px;
-  border-radius: 14px;
-  padding: 7px;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  width: auto;
+  display: block;
+  object-fit: contain;
 }
 
 .auth-brand-name {

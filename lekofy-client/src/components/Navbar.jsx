@@ -36,8 +36,7 @@ function Navbar() {
       <header className="home-topbar">
         <div className="home-topbar__inner">
           <button type="button" className="home-brand" onClick={() => navigate('home')} aria-label="Lekofy">
-            <img src="/lekofy-logo.svg" alt="Lekofy" />
-            <span>Lekofy</span>
+            <img src="/lekofy-logo.png" alt="Lekofy" />
           </button>
 
           <button type="button" className="home-location">
@@ -100,8 +99,7 @@ function Navbar() {
     <header className="lekofy-header">
       <div className="lekofy-header__inner">
         <button type="button" className="lekofy-brand" onClick={() => navigate('home')} aria-label="Lekofy">
-          <img src="/lekofy-logo.svg" alt="Lekofy" className="lekofy-brand__logo" />
-          <span className="lekofy-brand__name">Lekofy</span>
+          <img src="/lekofy-logo.png" alt="Lekofy" className="lekofy-brand__logo" />
         </button>
 
         <nav className="lekofy-nav" aria-label="Главная навигация">

@@ -42,8 +42,9 @@ body.home-view .lekofy-header {
 }
 
 .home-brand img {
-  width: 34px;
-  height: 34px;
+  height: 36px;
+  width: auto;
+  display: block;
 }
 
 .home-brand span {
@@ -880,8 +881,9 @@ body.home-view .lekofy-header {
 }
 
 .home-footer__logo {
-  width: 104px;
-  height: auto;
+  height: 44px;
+  width: auto;
+  display: block;
 }
 
 .home-footer__brand p {

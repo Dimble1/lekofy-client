@@ -648,7 +648,7 @@ function Home() {
 
       <footer className="home-footer">
         <div className="home-footer__brand">
-          <img src="/lekofy-logo.svg" alt="Lekofy" className="home-footer__logo" />
+          <img src="/lekofy-logo.png" alt="Lekofy" className="home-footer__logo" />
           <p>Маркетплейс объявлений для всей России</p>
           <div className="home-footer__socials" aria-label="Социальные сети">
             <span><i className="fa-brands fa-vk" /></span>
