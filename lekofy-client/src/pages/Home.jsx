@@ -26,14 +26,6 @@ const FOOTER_COLUMNS = [
   },
 ];
 
-const COLLECTIONS = [
-  { title: 'Для студентов', count: '1 342 объявления', icon: 'fa-school', tint: 'blue' },
-  { title: 'До 10 000 сом', count: '2 843 объявления', icon: 'fa-headphones', tint: 'sand' },
-  { title: 'Для дома', count: '3 912 объявлений', icon: 'fa-couch', tint: 'mint' },
-  { title: 'Новинки недели', count: '1 523 объявления', icon: 'fa-gamepad', tint: 'violet' },
-  { title: 'Для бизнеса', count: '987 объявлений', icon: 'fa-briefcase', tint: 'lavender' },
-];
-
 const QUICK_FILTERS = [
   { id: 'recent', label: 'Сначала новые', icon: 'fa-bolt' },
   { id: 'popular', label: 'Популярные', icon: 'fa-fire-flame-curved' },
@@ -76,7 +68,7 @@ function getImage(ad) {
 }
 
 function getCity(ad) {
-  return ad?.city || ad?.location || ad?.district || 'Москва';
+  return ad?.city || ad?.location || ad?.district || 'Бишкек';
 }
 
 function getPublishedAt(ad) {
@@ -92,9 +84,6 @@ function getPopularityScore(ad) {
   );
 }
 
-function isPremiumAd(ad) {
-  return Boolean(ad?.featured || ad?.premium || ad?.isPremium || ad?.boosted);
-}
 
 function uniqueById(list) {
   const seen = new Set();
@@ -226,7 +215,7 @@ function Home() {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [draftQuery, setDraftQuery] = useState('');
-  const [city, setCity] = useState('Москва');
+  const [city, setCity] = useState('Бишкек');
   const [categoryId, setCategoryId] = useState('');
   const [activeQuickFilter, setActiveQuickFilter] = useState('recent');
   const [favoriteIds, setFavoriteIds] = useState(() => new Set());
@@ -307,11 +296,7 @@ function Home() {
 
   const freshAds = useMemo(() => visibleAds.slice(0, 8), [visibleAds]);
 
-  const premiumAds = useMemo(() => {
-    const premiumPool = ads.filter(isPremiumAd);
-    const fallbackPool = [...ads].sort((a, b) => getPopularityScore(b) - getPopularityScore(a));
-    return uniqueById([...premiumPool, ...fallbackPool]).slice(0, 5);
-  }, [ads]);
+  const heroAds = useMemo(() => uniqueById([...freshAds, ...recommended]).slice(0, 3), [freshAds, recommended]);
 
   const nearbyBuckets = useMemo(() => {
     const byCategory = new Map();
@@ -341,8 +326,6 @@ function Home() {
       .slice(0, 6);
   }, [ads, categoryCards]);
 
-  const heroAds = useMemo(() => uniqueById([...premiumAds, ...freshAds, ...recommended]).slice(0, 3), [freshAds, premiumAds, recommended]);
-
   const topCity = useMemo(() => {
     const counts = new Map();
     for (const ad of ads) {
@@ -350,7 +333,7 @@ function Home() {
       counts.set(name, (counts.get(name) || 0) + 1);
     }
 
-    let best = 'Москва';
+    let best = 'Бишкек';
     let max = 0;
     for (const [name, count] of counts.entries()) {
       if (count > max) {
@@ -360,8 +343,6 @@ function Home() {
     }
     return best;
   }, [ads]);
-
-  const collections = useMemo(() => COLLECTIONS, []);
 
   const handleOpenAd = (ad) => {
     if (!ad?.id) return;
@@ -406,7 +387,7 @@ function Home() {
   const clearFilters = () => {
     setDraftQuery('');
     setQuery('');
-    setCity('Москва');
+    setCity('Бишкек');
     setCategoryId('');
     setActiveQuickFilter('recent');
   };
@@ -463,10 +444,12 @@ function Home() {
 
             <div className="home-search__field">
               <select value={city} onChange={(event) => setCity(event.target.value)}>
-                <option value="Москва">Москва и МО</option>
-                <option value="Санкт-Петербург">Санкт-Петербург</option>
                 <option value="Бишкек">Бишкек</option>
-                <option value="Алматы">Алматы</option>
+                <option value="Ош">Ош</option>
+                <option value="Джалал-Абад">Джалал-Абад</option>
+                <option value="Каракол">Каракол</option>
+                <option value="Токмок">Токмок</option>
+                <option value="Нарын">Нарын</option>
               </select>
               <i className="fa-solid fa-chevron-down" aria-hidden="true" />
             </div>
@@ -568,32 +551,6 @@ function Home() {
         </div>
       </section>
 
-      <section className="home-section home-section--premium" id="premium">
-        <SectionHeader
-          kicker="Premium объявления"
-          title="Premium объявления"
-          subtitle="Выделенные объявления от проверенных продавцов"
-          actionLabel="Смотреть все"
-          onAction={() => navigate('home')}
-        />
-
-        <div className="home-strip">
-          {loading
-            ? Array.from({ length: 5 }).map((_, index) => <HomeCardSkeleton key={index} />)
-            : premiumAds.map((ad) => (
-                <ListingCard
-                  key={ad.id}
-                  ad={ad}
-                  premium
-                  onOpen={handleOpenAd}
-                  onFavorite={handleFavorite}
-                  favoriteBusy={favoriteBusyId === ad.id}
-                  isFavorite={favoriteIds.has(ad.id)}
-                />
-              ))}
-        </div>
-      </section>
-
       <section className="home-section" id="nearby">
         <SectionHeader
           kicker="Популярно рядом с вами"
@@ -628,30 +585,11 @@ function Home() {
         </div>
       </section>
 
-      <section className="home-section" id="collections">
-        <SectionHeader kicker="Подборки" title="Подборки" subtitle="Поддерживает атмосферу живого маркетплейса" />
-
-        <div className="home-collections">
-          {collections.map((item) => (
-            <button key={item.title} type="button" className={`home-collection home-collection--${item.tint}`}>
-              <div className="home-collection__copy">
-                <strong>{item.title}</strong>
-                <span>{item.count}</span>
-              </div>
-              <div className="home-collection__icon">
-                <i className={`fa-solid ${item.icon}`} aria-hidden="true" />
-              </div>
-            </button>
-          ))}
-        </div>
-      </section>
-
       <footer className="home-footer">
         <div className="home-footer__brand">
           <img src="/lekofy-logo.svg" alt="Lekofy" className="home-footer__logo" />
-          <p>Маркетплейс объявлений для всей России</p>
+          <p>Маркетплейс объявлений для всего Кыргызстана</p>
           <div className="home-footer__socials" aria-label="Социальные сети">
-            <span><i className="fa-brands fa-vk" /></span>
             <span><i className="fa-brands fa-telegram" /></span>
             <span><i className="fa-brands fa-instagram" /></span>
             <span><i className="fa-brands fa-youtube" /></span>
@@ -667,15 +605,6 @@ function Home() {
               ))}
             </div>
           ))}
-        </div>
-
-        <div className="home-footer__subscribe">
-          <h3>Будьте в курсе</h3>
-          <p>Получайте подборки лучших объявлений на почту</p>
-          <div className="home-footer__subscribe-row">
-            <input type="email" placeholder="Ваш email" aria-label="Email" />
-            <button type="button">Подписаться</button>
-          </div>
         </div>
       </footer>
 

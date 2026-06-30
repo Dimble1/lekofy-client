@@ -873,7 +873,7 @@ body.home-view .lekofy-header {
 
 .home-footer {
   display: grid;
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(220px, 260px);
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
   gap: 22px;
   padding: 24px 0 6px;
   margin-top: 6px;

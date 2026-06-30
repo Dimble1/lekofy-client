@@ -41,7 +41,7 @@ function Navbar() {
 
           <button type="button" className="home-location">
             <i className="fa-solid fa-location-dot" aria-hidden="true" />
-            <span>Москва</span>
+            <span>Бишкек</span>
             <i className="fa-solid fa-chevron-down" aria-hidden="true" />
           </button>
 

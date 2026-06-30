@@ -1,5 +1,4 @@
 import Home from './pages/Home';
-import { APIDebug } from './components/APIDebug';
 import { useRouter } from './context/RouterContext.jsx';
 import './App.css';
 import Login from './pages/Login.jsx';
@@ -60,7 +59,6 @@ function App() {
     <>
       {!isAuthPage && <Navbar />}
       {content}
-      {!isAuthPage && <APIDebug />}
     </>
   );
 }
