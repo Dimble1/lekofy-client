@@ -30,6 +30,25 @@ function Register() {
   const normalizedPhone = useMemo(() => phone.replace(/[^\d+]/g, ''), [phone]);
   const strongPasswordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
+  const passwordStrength = useMemo(() => {
+    const checks = [
+      password.length >= 8,
+      /[A-Z]/.test(password),
+      /\d/.test(password),
+      /[^A-Za-z0-9]/.test(password),
+    ];
+    const score = checks.filter(Boolean).length;
+    const labels = ['Очень слабый', 'Слабый', 'Средний', 'Хороший', 'Сильный'];
+    const colors = ['#ef4444', '#f59e0b', '#facc15', '#22c55e', '#0f766e'];
+
+    return {
+      score,
+      label: password ? labels[score] : '',
+      color: password ? colors[score] : 'transparent',
+      width: password ? `${(score / 4) * 100}%` : '0%',
+    };
+  }, [password]);
+
   useEffect(() => {
     if (!resendAfter) return undefined;
 
