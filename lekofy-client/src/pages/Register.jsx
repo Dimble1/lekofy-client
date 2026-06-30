@@ -183,6 +183,17 @@ function Register() {
                 placeholder="Минимум 8 символов"
                 autoComplete="new-password"
               />
+              {password && (
+                <div className="password-strength">
+                  <div className="password-strength__bar">
+                    <div
+                      className="password-strength__fill"
+                      style={{ width: passwordStrength.width, background: passwordStrength.color }}
+                    />
+                  </div>
+                  <div className="password-strength__label">{passwordStrength.label}</div>
+                </div>
+              )}
             </div>
 
             <div className="auth-field">
