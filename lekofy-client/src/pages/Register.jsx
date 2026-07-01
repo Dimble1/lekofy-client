@@ -18,6 +18,7 @@ function Register() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [debouncedPassword, setDebouncedPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [smsCode, setSmsCode] = useState('');
   const [smsSent, setSmsSent] = useState(false);
@@ -30,12 +31,18 @@ function Register() {
   const normalizedPhone = useMemo(() => phone.replace(/[^\d+]/g, ''), [phone]);
   const strongPasswordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedPassword(password), 200);
+    return () => clearTimeout(t);
+  }, [password]);
+
   const passwordStrength = useMemo(() => {
+    const p = debouncedPassword || '';
     const checks = [
-      password.length >= 8,
-      /[A-Z]/.test(password),
-      /\d/.test(password),
-      /[^A-Za-z0-9]/.test(password),
+      p.length >= 8,
+      /[A-Z]/.test(p),
+      /\d/.test(p),
+      /[^A-Za-z0-9]/.test(p),
     ];
     const score = checks.filter(Boolean).length;
     const labels = ['Очень слабый', 'Слабый', 'Средний', 'Хороший', 'Сильный'];
@@ -43,11 +50,11 @@ function Register() {
 
     return {
       score,
-      label: password ? labels[score] : '',
-      color: password ? colors[score] : 'transparent',
-      width: password ? `${(score / 4) * 100}%` : '0%',
+      label: p ? labels[score] : '',
+      color: p ? colors[score] : 'transparent',
+      width: p ? `${(score / 4) * 100}%` : '0%',
     };
-  }, [password]);
+  }, [debouncedPassword]);
 
   useEffect(() => {
     if (!resendAfter) return undefined;
@@ -210,7 +217,7 @@ function Register() {
                       style={{ width: passwordStrength.width, background: passwordStrength.color }}
                     />
                   </div>
-                  <div className="password-strength__label">{passwordStrength.label}</div>
+                  <div className="password-strength__label" aria-live="polite">{passwordStrength.label}</div>
                 </div>
               )}
             </div>

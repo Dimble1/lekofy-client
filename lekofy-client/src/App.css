@@ -759,6 +759,7 @@ body {
   backdrop-filter: blur(18px);
   background: rgba(255, 255, 255, 0.76);
   border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 .lekofy-header__inner {
