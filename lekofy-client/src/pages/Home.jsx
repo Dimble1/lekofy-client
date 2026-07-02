@@ -410,10 +410,6 @@ function Home() {
             <span>рядом с вами</span>
           </h1>
 
-          <p className="home-hero__subtitle">
-            Тысячи объявлений от проверенных пользователей каждый день
-          </p>
-
           <form className="home-search" onSubmit={handleSearchSubmit}>
             <div className="home-search__field home-search__field--wide">
               <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
@@ -458,25 +454,6 @@ function Home() {
               Найти
             </button>
           </form>
-
-          <div className="home-popular">
-            <span>Популярные запросы:</span>
-            <div className="home-popular__chips">
-              {POPULAR_SEARCHES.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  className="home-popular__chip"
-                  onClick={() => {
-                    setDraftQuery(item);
-                    setQuery(item);
-                  }}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
 
         <div className="home-hero__art" aria-hidden="true">
@@ -547,40 +524,6 @@ function Home() {
                   favoriteBusy={favoriteBusyId === ad.id}
                   isFavorite={favoriteIds.has(ad.id)}
                 />
-              ))}
-        </div>
-      </section>
-
-      <section className="home-section" id="nearby">
-        <SectionHeader
-          kicker="Популярно рядом с вами"
-          title={`Популярно рядом с вами`}
-          subtitle={`Смотрят чаще всего в ${city || topCity}`}
-          actionLabel="Смотреть все"
-          onAction={() => navigate('home')}
-        />
-
-        <div className="home-nearby">
-          {loading
-            ? Array.from({ length: 6 }).map((_, index) => (
-                <div key={index} className="home-nearby__card home-nearby__card--skeleton">
-                  <div className="home-skeleton home-skeleton--nearby-thumb" />
-                  <div className="home-nearby__copy">
-                    <div className="home-skeleton home-skeleton--line" />
-                    <div className="home-skeleton home-skeleton--line home-skeleton--short" />
-                  </div>
-                </div>
-              ))
-            : nearbyBuckets.map((bucket) => (
-                <button key={bucket.id} type="button" className="home-nearby__card">
-                  <div className="home-nearby__thumb">
-                    {bucket.image ? <img src={bucket.image} alt="" /> : <i className={`fa-solid ${bucket.icon}`} aria-hidden="true" />}
-                  </div>
-                  <div className="home-nearby__copy">
-                    <strong>{bucket.title}</strong>
-                    <span>{bucket.count}</span>
-                  </div>
-                </button>
               ))}
         </div>
       </section>
