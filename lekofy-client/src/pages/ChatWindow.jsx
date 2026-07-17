@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { chatAPI } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -291,7 +291,7 @@ function ChatWindow({ chatId, title, profileUserId, profileName, embedded = fals
         </div>
         <div className="neo-window-actions">
           <button type="button" className="neo-icon-btn" onClick={() => setSearchOpen((v) => !v)} title="Поиск по сообщениям">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><line x1="16.5" y1="16.5" x2="21" y2="21" /></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </button>
           <div className="neo-menu-wrap" ref={menuPanelRef}>
             <button type="button" className="neo-icon-btn" onClick={() => setMenuOpen((v) => !v)} title="Меню">
@@ -400,7 +400,7 @@ function ChatWindow({ chatId, title, profileUserId, profileName, embedded = fals
         </div>
 
         <button type="button" className="neo-icon-btn" onClick={() => fileInputRef.current?.click()} title="Прикрепить файл">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.44 11.05L12.25 20.24a5 5 0 0 1-7.07-7.07L13 5.35a3 3 0 0 1 4.24 4.24L9.41 17.41a1 1 0 0 1-1.41-1.41l7.07-7.07" /></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
         </button>
 
         <textarea
@@ -413,7 +413,7 @@ function ChatWindow({ chatId, title, profileUserId, profileName, embedded = fals
         />
 
         <button type="button" className="neo-btn neo-send" onClick={send} disabled={!text.trim() || sending} title="Отправить">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5L21 3l-6 18-3.5-7L3 11.5z" fill="currentColor" /></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
         </button>
 
         <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFile} className="neo-hidden" />

@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { chatAPI } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -123,7 +123,7 @@ function ChatList({ initialChatId, initialTitle, initialProfileUserId, initialPr
           <div className="neo-chat-topbar">
             <div>
               <h2 className="neo-chat-title">Сообщения</h2>
-              <p className="neo-chat-subtitle">Один экран: список и диалог.</p>
+              <p className="neo-chat-subtitle">Общайтесь с продавцами и покупателями</p>
             </div>
           </div>
 
