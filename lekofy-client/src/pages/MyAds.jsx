@@ -1,5 +1,5 @@
-﻿import { useEffect, useMemo, useState } from 'react';
-import { adsAPI } from '../services/api';
+import { useEffect, useMemo, useState } from 'react';
+import { adsAPI, resolveMediaUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useRouter } from '../context/RouterContext.jsx';
 import { categories } from '../data/categories';
@@ -380,7 +380,7 @@ function MyAds() {
                 <article key={ad.id} className="my-ads-item">
                   <div className="my-ads-image-wrap">
                     {Array.isArray(ad.images) && ad.images[0] ? (
-                      <img src={ad.images[0]} alt={ad.title || 'Объявление'} />
+                      <img src={resolveMediaUrl(ad.images[0])} alt={ad.title || 'Объявление'} />
                     ) : (
                       <div className="my-ads-image-placeholder">Нет фото</div>
                     )}
@@ -500,7 +500,7 @@ function MyAds() {
                   <div className="my-ads-photo-grid">
                     {editState.form.images.map((url, idx) => (
                       <div className="my-ads-photo-item" key={`${url}_${idx}`}>
-                        <img src={url} alt={`Фото ${idx + 1}`} />
+                        <img src={resolveMediaUrl(url)} alt={`Фото ${idx + 1}`} />
                         <button type="button" onClick={() => removeExistingImage(idx)} disabled={editState.saving}>
                           Убрать
                         </button>
@@ -520,7 +520,7 @@ function MyAds() {
                   <div className="my-ads-photo-grid my-ads-photo-grid--new">
                     {newFilePreviews.map((item, idx) => (
                       <div className="my-ads-photo-item" key={item.key}>
-                        <img src={item.url} alt={item.name} />
+                        <img src={resolveMediaUrl(item.url)} alt={item.name} />
                         <button type="button" onClick={() => removeNewFile(idx)} disabled={editState.saving}>
                           Убрать
                         </button>

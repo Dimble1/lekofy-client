@@ -2,14 +2,14 @@ const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
 const connectionUrl =
-  process.env.POSTGRES_URL_NON_POOLING ||
-  process.env.POSTGRES_URL ||
+  process.env.DATABASE_URL ||
   process.env.SUPABASE_DATABASE_URL ||
-  process.env.DATABASE_URL;
+  process.env.POSTGRES_URL_NON_POOLING ||
+  process.env.POSTGRES_URL;
 
 if (!connectionUrl) {
   throw new Error(
-    'Missing database configuration. Set POSTGRES_URL_NON_POOLING, POSTGRES_URL, SUPABASE_DATABASE_URL, or DATABASE_URL.'
+    'Missing database configuration. Set DATABASE_URL, SUPABASE_DATABASE_URL, POSTGRES_URL_NON_POOLING, or POSTGRES_URL.'
   );
 }
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { adsAPI, favoritesAPI } from '../services/api';
+import { adsAPI, favoritesAPI, resolveMediaUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useRouter } from '../context/RouterContext.jsx';
 import { categories } from '../data/categories';
@@ -144,7 +144,7 @@ function ListingCard({ ad, onOpen, onFavorite, favoriteBusy, isFavorite, premium
     <article className={`home-card ${premium ? 'home-card--premium' : ''}`}>
       <button type="button" className="home-card__media" onClick={() => onOpen(ad)} aria-label={ad.title}>
         {image ? (
-          <img src={image} alt={ad.title} />
+          <img src={resolveMediaUrl(image)} alt={ad.title} />
         ) : (
           <div className="home-card__placeholder">
             <i className="fa-solid fa-image" aria-hidden="true" />
@@ -459,13 +459,13 @@ function Home() {
         <div className="home-hero__art" aria-hidden="true">
           <div className="home-hero__art-glow" />
           <div className="home-hero__art-item home-hero__art-item--chair">
-            {heroAds[0]?.images?.[0] ? <img src={heroAds[0].images[0]} alt="" /> : <i className="fa-solid fa-couch" />}
+            {heroAds[0]?.images?.[0] ? <img src={resolveMediaUrl(heroAds[0].images[0])} alt="" /> : <i className="fa-solid fa-couch" />}
           </div>
           <div className="home-hero__art-item home-hero__art-item--plant">
-            {heroAds[1]?.images?.[0] ? <img src={heroAds[1].images[0]} alt="" /> : <i className="fa-solid fa-seedling" />}
+            {heroAds[1]?.images?.[0] ? <img src={resolveMediaUrl(heroAds[1].images[0])} alt="" /> : <i className="fa-solid fa-seedling" />}
           </div>
           <div className="home-hero__art-item home-hero__art-item--car">
-            {heroAds[2]?.images?.[0] ? <img src={heroAds[2].images[0]} alt="" /> : <i className="fa-solid fa-car-side" />}
+            {heroAds[2]?.images?.[0] ? <img src={resolveMediaUrl(heroAds[2].images[0])} alt="" /> : <i className="fa-solid fa-car-side" />}
           </div>
         </div>
       </section>

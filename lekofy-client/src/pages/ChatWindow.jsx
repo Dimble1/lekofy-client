@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { chatAPI } from '../services/api';
+import { chatAPI, resolveMediaUrl } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import LoadingAnimation from '../components/LoadingAnimation.jsx';
@@ -346,7 +346,7 @@ function ChatWindow({ chatId, title, profileUserId, profileName, embedded = fals
               <div key={msg.id} className={`neo-msg-row ${mine ? 'me' : 'them'}`}>
                 <div className="neo-msg-bubble">
                   {imageUrl ? (
-                    <img className="neo-msg-image" src={imageUrl} alt="Фото в чате" />
+                    <img className="neo-msg-image" src={resolveMediaUrl(imageUrl)} alt="Фото в чате" />
                   ) : (
                     <div>{textMsg}</div>
                   )}

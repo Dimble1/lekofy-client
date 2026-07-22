@@ -1,6 +1,23 @@
 ﻿// Р‘Р°Р·РѕРІС‹Р№ URL РґР»СЏ API
 const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 export const API_URL = rawApiUrl.replace(/\/+$/, '');
+const API_ORIGIN = (() => {
+  try {
+    return new URL(API_URL).origin;
+  } catch {
+    return 'http://localhost:3000';
+  }
+})();
+
+export const resolveMediaUrl = (value) => {
+  if (!value || typeof value !== 'string') return '';
+
+  const url = value.trim();
+  if (!url) return '';
+  if (/^(?:https?:)?\/\//i.test(url) || /^(?:data|blob|file):/i.test(url)) return url;
+
+  return `${API_ORIGIN}/${url.replace(/^\/+/, '')}`;
+};
 
 // Р¤СѓРЅРєС†РёСЏ РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ С‚РѕРєРµРЅР° РёР· localStorage
 const getToken = () => localStorage.getItem('token');

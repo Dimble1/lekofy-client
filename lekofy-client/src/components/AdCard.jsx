@@ -1,5 +1,5 @@
-﻿import { useState } from 'react';
-import { favoritesAPI } from '../services/api';
+import { useState } from 'react';
+import { favoritesAPI, resolveMediaUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext.jsx';
 
 function AdCard({
@@ -46,7 +46,7 @@ function AdCard({
       <div className="card-image">
         {imageUrl ? (
           <img
-            src={imageUrl}
+            src={resolveMediaUrl(imageUrl)}
             alt={title}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />

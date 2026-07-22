@@ -1,3 +1,4 @@
+import { resolveMediaUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useRouter } from '../context/RouterContext.jsx';
 
@@ -76,7 +77,7 @@ function Navbar() {
               title={isLoggedIn ? user?.name || 'Профиль' : 'Войти'}
             >
               {user?.avatarUrl || user?.avatar ? (
-                <img src={user.avatarUrl || user.avatar} alt={user?.name || 'Профиль'} />
+                <img src={resolveMediaUrl(user.avatarUrl || user.avatar)} alt={user?.name || 'Профиль'} />
               ) : (
                 <span>{(user?.name || 'U').charAt(0).toUpperCase()}</span>
               )}

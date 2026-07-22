@@ -1,5 +1,5 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
-import { chatAPI, profileAPI } from '../services/api';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { chatAPI, profileAPI, resolveMediaUrl } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import LoadingAnimation from '../components/LoadingAnimation.jsx';
@@ -298,7 +298,7 @@ function Profile({ userId }) {
           <section className="profile-hero-card">
             <div className="profile-avatar-wrap" aria-hidden="true">
               {profile.avatarUrl ? (
-                <img src={profile.avatarUrl} alt={profile.name || 'Пользователь'} className="profile-avatar" />
+                <img src={resolveMediaUrl(profile.avatarUrl)} alt={profile.name || 'Пользователь'} className="profile-avatar" />
               ) : (
                 <span className="profile-avatar-initial">{profile.name?.charAt(0)?.toUpperCase() || '?'}</span>
               )}
@@ -461,7 +461,7 @@ function Profile({ userId }) {
                   >
                     <div className="profile-ad-image-wrap">
                       {Array.isArray(ad.images) && ad.images.length > 0 ? (
-                        <img src={ad.images[0]} alt={ad.title} className="profile-ad-image" />
+                        <img src={resolveMediaUrl(ad.images[0])} alt={ad.title} className="profile-ad-image" />
                       ) : (
                         <div className="profile-ad-image-placeholder">Нет фото</div>
                       )}

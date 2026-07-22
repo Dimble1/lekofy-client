@@ -1,5 +1,5 @@
-﻿import { useEffect, useMemo, useState } from 'react';
-import { favoritesAPI } from '../services/api';
+import { useEffect, useMemo, useState } from 'react';
+import { favoritesAPI, resolveMediaUrl } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import LoadingAnimation from '../components/LoadingAnimation.jsx';
@@ -173,7 +173,7 @@ function Favorites() {
               >
                 <div className="favorites-card-media">
                   {imageUrl ? (
-                    <img src={imageUrl} alt={ad?.title || 'Объявление'} />
+                    <img src={resolveMediaUrl(imageUrl)} alt={ad?.title || 'Объявление'} />
                   ) : (
                     <div className="favorites-card-placeholder">Нет фото</div>
                   )}

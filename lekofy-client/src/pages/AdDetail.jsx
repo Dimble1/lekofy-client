@@ -1,5 +1,5 @@
-﻿import { useEffect, useMemo, useState } from 'react';
-import { adsAPI, favoritesAPI, chatAPI, profileAPI } from '../services/api';
+import { useEffect, useMemo, useState } from 'react';
+import { adsAPI, favoritesAPI, chatAPI, profileAPI, resolveMediaUrl } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { categories } from '../data/categories';
@@ -440,7 +440,7 @@ function AdDetail({ adId }) {
                 <>
                   <div className="ad-detail-main-image-wrap">
                     <img
-                      src={safeImages[activeImageIndex]}
+                      src={resolveMediaUrl(safeImages[activeImageIndex])}
                       alt={ad.title}
                       className="ad-detail-main-image"
                     />
@@ -455,7 +455,7 @@ function AdDetail({ adId }) {
                           className={`ad-detail-thumb ${index === activeImageIndex ? 'is-active' : ''}`}
                           onClick={() => setActiveImageIndex(index)}
                         >
-                          <img src={image} alt="" />
+                          <img src={resolveMediaUrl(image)} alt="" />
                         </button>
                       ))}
                     </div>
@@ -585,7 +585,7 @@ function AdDetail({ adId }) {
               >
                 <div className="ad-detail-avatar">
                   {sellerAvatar ? (
-                    <img src={sellerAvatar} alt={sellerName} className="ad-detail-avatar-image" />
+                    <img src={resolveMediaUrl(sellerAvatar)} alt={sellerName} className="ad-detail-avatar-image" />
                   ) : (
                     sellerName.charAt(0).toUpperCase()
                   )}
@@ -641,7 +641,7 @@ function AdDetail({ adId }) {
                 >
                   <div className="ad-detail-similar-image-wrap">
                     {Array.isArray(item.images) && item.images.length > 0 ? (
-                      <img src={item.images[0]} alt={item.title} className="ad-detail-similar-image" />
+                      <img src={resolveMediaUrl(item.images[0])} alt={item.title} className="ad-detail-similar-image" />
                     ) : (
                       <div className="ad-detail-similar-empty">Нет фото</div>
                     )}
