@@ -1,9 +1,15 @@
 require('dotenv').config();
+const dns = require('dns');
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
+
+// Render often runs without IPv6 egress, so prefer IPv4 when resolving Supabase hosts.
+if (typeof dns.setDefaultResultOrder === 'function') {
+  dns.setDefaultResultOrder('ipv4first');
+}
 const sequelize = require('./config/database');
 
 // Models
