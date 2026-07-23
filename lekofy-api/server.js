@@ -28,7 +28,6 @@ const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
 const sequelize = require('./config/database');
-const sequelize = require('./config/database');
 
 // Models
 const User = require('./models/User');
