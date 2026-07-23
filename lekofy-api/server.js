@@ -1,15 +1,33 @@
 require('dotenv').config();
 const dns = require('dns');
+const originalLookup = dns.lookup.bind(dns);
+
+// Force IPv4 resolution on platforms where IPv6 egress is unavailable.
+// pg uses dns.lookup internally, so patching it here keeps Sequelize on IPv4.
+dns.lookup = function patchedLookup(hostname, options, callback) {
+  let opts = options;
+  let cb = callback;
+
+  if (typeof opts === 'function') {
+    cb = opts;
+    opts = undefined;
+  }
+
+  if (opts && typeof opts === 'object') {
+    opts = { ...opts, family: 4, all: false };
+  } else {
+    opts = { family: 4, all: false };
+  }
+
+  return originalLookup(hostname, opts, cb);
+};
+
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
-
-// Render often runs without IPv6 egress, so prefer IPv4 when resolving Supabase hosts.
-if (typeof dns.setDefaultResultOrder === 'function') {
-  dns.setDefaultResultOrder('ipv4first');
-}
+const sequelize = require('./config/database');
 const sequelize = require('./config/database');
 
 // Models
