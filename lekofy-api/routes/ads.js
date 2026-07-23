@@ -1,4 +1,4 @@
-const router = require('express').Router();
+﻿const router = require('express').Router();
 const auth = require('../middleware/auth');
 const Ad = require('../models/Ad');
 const Report = require('../models/Report');
@@ -20,7 +20,7 @@ cloudinary.config({
 
 const upload = multer({ dest: 'uploads/' });
 
-const BANNED_WORDS = ['РЅР°СЂРєРѕС‚РёРє', 'РѕСЂСѓР¶РёРµ', 'РїРѕСЂРЅРѕ', 'РѕСЂСѓР¶РёСЏ', 'РіРµСЂРѕРёРЅ', 'РєРѕРєР°РёРЅ', 'РјРµС„РµРґСЂРѕРЅ', 'РЅР°СЃРІР°Р№', 'РЅР°СЂРєРѕ'];
+const BANNED_WORDS = ['Р Р…Р В°РЎР‚Р С”Р С•РЎвЂљР С‘Р С”', 'Р С•РЎР‚РЎС“Р В¶Р С‘Р Вµ', 'Р С—Р С•РЎР‚Р Р…Р С•', 'Р С•РЎР‚РЎС“Р В¶Р С‘РЎРЏ', 'Р С–Р ВµРЎР‚Р С•Р С‘Р Р…', 'Р С”Р С•Р С”Р В°Р С‘Р Р…', 'Р СР ВµРЎвЂћР ВµР Т‘РЎР‚Р С•Р Р…', 'Р Р…Р В°РЎРѓР Р†Р В°Р в„–', 'Р Р…Р В°РЎР‚Р С”Р С•'];
 
 const CATEGORY_GROUPS = [
   ['cars'],
@@ -79,7 +79,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Рекомендации: похожие объявления по категории/городу, сортировка по просмотрам
+// Р РµРєРѕРјРµРЅРґР°С†РёРё: РїРѕС…РѕР¶РёРµ РѕР±СЉСЏРІР»РµРЅРёСЏ РїРѕ РєР°С‚РµРіРѕСЂРёРё/РіРѕСЂРѕРґСѓ, СЃРѕСЂС‚РёСЂРѕРІРєР° РїРѕ РїСЂРѕСЃРјРѕС‚СЂР°Рј
 router.get('/recommend', async (req, res) => {
   try {
     const { category, city, excludeId, limit } = req.query;
@@ -116,7 +116,7 @@ router.get('/my/list', auth, async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const ad = await Ad.findByPk(req.params.id);
-    if (!ad) return res.status(404).json({ error: 'Объявление не найдено' });
+    if (!ad) return res.status(404).json({ error: 'РћР±СЉСЏРІР»РµРЅРёРµ РЅРµ РЅР°Р№РґРµРЅРѕ' });
     await ad.increment('views');
     res.json(ad);
   } catch (err) {
@@ -130,21 +130,21 @@ router.post('/:id/offer-price', auth, async (req, res) => {
       include: [{ model: User, as: 'Owner', attributes: ['id', 'name'], required: false }],
     });
     if (!ad) {
-      return res.status(404).json({ error: 'Объявление не найдено' });
+      return res.status(404).json({ error: 'РћР±СЉСЏРІР»РµРЅРёРµ РЅРµ РЅР°Р№РґРµРЅРѕ' });
     }
     if (Number(ad.userId) === Number(req.user.id)) {
-      return res.status(400).json({ error: 'Нельзя предложить цену по своему объявлению' });
+      return res.status(400).json({ error: 'РќРµР»СЊР·СЏ РїСЂРµРґР»РѕР¶РёС‚СЊ С†РµРЅСѓ РїРѕ СЃРІРѕРµРјСѓ РѕР±СЉСЏРІР»РµРЅРёСЋ' });
     }
 
     const offeredPrice = Number(req.body?.offeredPrice);
     if (!Number.isFinite(offeredPrice) || offeredPrice <= 0) {
-      return res.status(400).json({ error: 'Укажите корректную цену предложения' });
+      return res.status(400).json({ error: 'РЈРєР°Р¶РёС‚Рµ РєРѕСЂСЂРµРєС‚РЅСѓСЋ С†РµРЅСѓ РїСЂРµРґР»РѕР¶РµРЅРёСЏ' });
     }
 
     const note = String(req.body?.note || '').trim();
     const buyer = await User.findByPk(req.user.id, { attributes: ['id', 'name'] });
-    const buyerName = buyer?.name || 'Покупатель';
-    const offerMessage = `Предложение цены: ${formatSom(offeredPrice)} сом${note ? `\nКомментарий: ${note}` : ''}`;
+    const buyerName = buyer?.name || 'РџРѕРєСѓРїР°С‚РµР»СЊ';
+    const offerMessage = `РџСЂРµРґР»РѕР¶РµРЅРёРµ С†РµРЅС‹: ${formatSom(offeredPrice)} СЃРѕРј${note ? `\nРљРѕРјРјРµРЅС‚Р°СЂРёР№: ${note}` : ''}`;
 
     const [chat] = await Chat.findOrCreate({
       where: { buyerId: req.user.id, sellerId: ad.userId, adId: ad.id },
@@ -161,8 +161,8 @@ router.post('/:id/offer-price', auth, async (req, res) => {
     const notification = await Notification.create({
       userId: ad.userId,
       type: 'price_offer',
-      title: 'Новое предложение цены',
-      text: `${buyerName} предложил(а) ${formatSom(offeredPrice)} сом за "${ad.title}"`,
+      title: 'РќРѕРІРѕРµ РїСЂРµРґР»РѕР¶РµРЅРёРµ С†РµРЅС‹',
+      text: `${buyerName} РїСЂРµРґР»РѕР¶РёР»(Р°) ${formatSom(offeredPrice)} СЃРѕРј Р·Р° "${ad.title}"`,
       data: {
         adId: ad.id,
         chatId: chat.id,
@@ -186,13 +186,13 @@ router.post('/:id/offer-price', auth, async (req, res) => {
     });
     io?.to(`user:${ad.userId}`).emit('newNotification', notification);
     await sendTelegramNotification(
-      `<b>Новое предложение цены</b>\n${buyerName} предложил(а) ${formatSom(offeredPrice)} сом за "${ad.title}"`
+      `<b>РќРѕРІРѕРµ РїСЂРµРґР»РѕР¶РµРЅРёРµ С†РµРЅС‹</b>\n${buyerName} РїСЂРµРґР»РѕР¶РёР»(Р°) ${formatSom(offeredPrice)} СЃРѕРј Р·Р° "${ad.title}"`
     );
 
     res.json({
       success: true,
       chatId: chat.id,
-      message: 'Предложение отправлено продавцу',
+      message: 'РџСЂРµРґР»РѕР¶РµРЅРёРµ РѕС‚РїСЂР°РІР»РµРЅРѕ РїСЂРѕРґР°РІС†Сѓ',
       notificationId: notification.id,
     });
   } catch (err) {
@@ -204,11 +204,11 @@ router.post('/', auth, upload.array('images', 20), async (req, res) => {
   try {
     const { title, description, price, category, city, phone, meta } = req.body;
 
-    // Автопроверка — если запрещённые слова, сразу отклоняем
+    // РђРІС‚РѕРїСЂРѕРІРµСЂРєР° вЂ” РµСЃР»Рё Р·Р°РїСЂРµС‰С‘РЅРЅС‹Рµ СЃР»РѕРІР°, СЃСЂР°Р·Сѓ РѕС‚РєР»РѕРЅСЏРµРј
     if (containsBannedWords(title) || containsBannedWords(description)) {
-      // Удаляем загруженные файлы
+      // РЈРґР°Р»СЏРµРј Р·Р°РіСЂСѓР¶РµРЅРЅС‹Рµ С„Р°Р№Р»С‹
       if (req.files) req.files.forEach(f => { try { fs.unlinkSync(f.path); } catch(e){} });
-      return res.status(400).json({ error: 'Объявление содержит запрещённые слова и не может быть опубликовано' });
+      return res.status(400).json({ error: 'РћР±СЉСЏРІР»РµРЅРёРµ СЃРѕРґРµСЂР¶РёС‚ Р·Р°РїСЂРµС‰С‘РЅРЅС‹Рµ СЃР»РѕРІР° Рё РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ РѕРїСѓР±Р»РёРєРѕРІР°РЅРѕ' });
     }
 
     const tryParseJson = (value) => {
@@ -220,7 +220,7 @@ router.post('/', auth, upload.array('images', 20), async (req, res) => {
       }
     };
 
-    // Собираем метаданные (дополнительные поля) — отдельно и из body, и из поля meta
+    // РЎРѕР±РёСЂР°РµРј РјРµС‚Р°РґР°РЅРЅС‹Рµ (РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РїРѕР»СЏ) вЂ” РѕС‚РґРµР»СЊРЅРѕ Рё РёР· body, Рё РёР· РїРѕР»СЏ meta
     const knownFields = ['title', 'description', 'price', 'category', 'city', 'phone', 'meta'];
     const incomingMeta = tryParseJson(meta);
     const extraMeta = Object.keys(req.body).reduce((acc, key) => {
@@ -231,6 +231,7 @@ router.post('/', auth, upload.array('images', 20), async (req, res) => {
     }, {});
     const finalMeta = { ...((typeof incomingMeta === 'object' && incomingMeta !== null) ? incomingMeta : {}), ...extraMeta };
     let imageUrls = [];
+    const uploadErrors = [];
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
         try {
@@ -238,11 +239,19 @@ router.post('/', auth, upload.array('images', 20), async (req, res) => {
             folder: 'lekofy'
           });
           imageUrls.push(result.secure_url);
-          fs.unlinkSync(file.path);
         } catch (uploadErr) {
           console.error('Ошибка загрузки фото:', uploadErr.message);
+          uploadErrors.push(uploadErr.message);
+        } finally {
+          try { fs.unlinkSync(file.path); } catch (_e) {}
         }
       }
+    }
+
+    if (req.files && req.files.length > 0 && imageUrls.length === 0) {
+      return res.status(500).json({
+        error: 'Не удалось загрузить фото. Проверьте Cloudinary переменные окружения на Render.',
+      });
     }
 
     // Чисто — сразу публикуем (status: 'active')
@@ -258,23 +267,27 @@ router.post('/', auth, upload.array('images', 20), async (req, res) => {
       status: 'active',
       userId: req.user.id,
     });
-    res.json({ ...ad.toJSON(), message: 'Объявление опубликовано!' });
+    res.json({
+      ...ad.toJSON(),
+      message: 'Объявление опубликовано!',
+      ...(uploadErrors.length > 0 ? { imageWarnings: uploadErrors } : {}),
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Жалоба — создаём и уведомляем админов
+// Р–Р°Р»РѕР±Р° вЂ” СЃРѕР·РґР°С‘Рј Рё СѓРІРµРґРѕРјР»СЏРµРј Р°РґРјРёРЅРѕРІ
 router.post('/:id/report', auth, async (req, res) => {
   try {
     const reason = (req.body && req.body.reason) ? String(req.body.reason).trim() : '';
-    if (!reason) return res.status(400).json({ error: 'Укажите причину жалобы' });
+    if (!reason) return res.status(400).json({ error: 'РЈРєР°Р¶РёС‚Рµ РїСЂРёС‡РёРЅСѓ Р¶Р°Р»РѕР±С‹' });
 
     const adId = parseInt(req.params.id, 10);
-    if (isNaN(adId)) return res.status(400).json({ error: 'Неверный ID объявления' });
+    if (isNaN(adId)) return res.status(400).json({ error: 'РќРµРІРµСЂРЅС‹Р№ ID РѕР±СЉСЏРІР»РµРЅРёСЏ' });
 
     const ad = await Ad.findByPk(adId);
-    if (!ad) return res.status(404).json({ error: 'Объявление не найдено' });
+    if (!ad) return res.status(404).json({ error: 'РћР±СЉСЏРІР»РµРЅРёРµ РЅРµ РЅР°Р№РґРµРЅРѕ' });
 
     const report = await Report.create({
       reason,
@@ -286,21 +299,21 @@ router.post('/:id/report', auth, async (req, res) => {
     try {
       const io = req.app && req.app.get ? req.app.get('io') : null;
       if (io) io.emit('newReport', { id: report.id, adId, adTitle: ad.title, reason });
-    } catch (e) { /* игнор ошибок socket */ }
+    } catch (e) { /* РёРіРЅРѕСЂ РѕС€РёР±РѕРє socket */ }
 
-    res.json({ id: report.id, adId, reason: report.reason, message: 'Жалоба отправлена модераторам' });
+    res.json({ id: report.id, adId, reason: report.reason, message: 'Р–Р°Р»РѕР±Р° РѕС‚РїСЂР°РІР»РµРЅР° РјРѕРґРµСЂР°С‚РѕСЂР°Рј' });
   } catch (err) {
-    console.error('Ошибка создания жалобы:', err);
-    res.status(500).json({ error: err.message || 'Ошибка отправки жалобы' });
+    console.error('РћС€РёР±РєР° СЃРѕР·РґР°РЅРёСЏ Р¶Р°Р»РѕР±С‹:', err);
+    res.status(500).json({ error: err.message || 'РћС€РёР±РєР° РѕС‚РїСЂР°РІРєРё Р¶Р°Р»РѕР±С‹' });
   }
 });
 
 router.put('/:id', auth, upload.array('images', 20), async (req, res) => {
   try {
     const ad = await Ad.findByPk(req.params.id);
-    if (!ad) return res.status(404).json({ error: 'Не найдено' });
-    if (ad.userId !== req.user.id) return res.status(403).json({ error: 'Нет доступа' });
-    // Разрешаем только эти поля — статус НЕ меняем (остаётся active)
+    if (!ad) return res.status(404).json({ error: 'РќРµ РЅР°Р№РґРµРЅРѕ' });
+    if (ad.userId !== req.user.id) return res.status(403).json({ error: 'РќРµС‚ РґРѕСЃС‚СѓРїР°' });
+    // Р Р°Р·СЂРµС€Р°РµРј С‚РѕР»СЊРєРѕ СЌС‚Рё РїРѕР»СЏ вЂ” СЃС‚Р°С‚СѓСЃ РќР• РјРµРЅСЏРµРј (РѕСЃС‚Р°С‘С‚СЃСЏ active)
     const { title, description, price, category, city, phone, images, meta } = req.body;
     const updates = {};
 
@@ -320,7 +333,7 @@ router.put('/:id', auth, upload.array('images', 20), async (req, res) => {
       }
     };
 
-    // Если пришли дополнительные поля, сохраняем их в meta
+    // Р•СЃР»Рё РїСЂРёС€Р»Рё РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РїРѕР»СЏ, СЃРѕС…СЂР°РЅСЏРµРј РёС… РІ meta
     const knownFields = ['title', 'description', 'price', 'category', 'city', 'phone', 'images', 'meta'];
     const incomingMeta = tryParseJson(meta);
     const extraMeta = Object.keys(req.body).reduce((acc, key) => {
@@ -385,9 +398,9 @@ router.put('/:id', auth, upload.array('images', 20), async (req, res) => {
 router.delete('/:id', auth, async (req, res) => {
   try {
     const ad = await Ad.findByPk(req.params.id);
-    if (!ad) return res.status(404).json({ error: 'Не найдено' });
+    if (!ad) return res.status(404).json({ error: 'РќРµ РЅР°Р№РґРµРЅРѕ' });
     if (ad.userId !== req.user.id && req.user.role === 'user') {
-      return res.status(403).json({ error: 'Нет доступа' });
+      return res.status(403).json({ error: 'РќРµС‚ РґРѕСЃС‚СѓРїР°' });
     }
     await ad.destroy();
     res.json({ success: true });
@@ -397,4 +410,6 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 module.exports = router;
+
+
 

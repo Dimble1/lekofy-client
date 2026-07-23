@@ -18,7 +18,16 @@ function parseHashRoute(hash) {
 
   const chatMatch = pathPart.match(/^\/chat\/([^/]+)$/);
   if (chatMatch) {
-    return { page: 'chat-window', params: { chatId: decodeURIComponent(chatMatch[1]) } };
+    return {
+      page: 'chat-window',
+      params: {
+        chatId: decodeURIComponent(chatMatch[1]),
+        title: params.get('title') || undefined,
+        adId: params.get('adId') || undefined,
+        profileUserId: params.get('profileUserId') || undefined,
+        profileName: params.get('profileName') || undefined,
+      },
+    };
   }
 
   const profileMatch = pathPart.match(/^\/profile\/([^/]+)$/);
@@ -44,7 +53,13 @@ function buildHash(page, params = {}) {
     return `#/ad/${encodeURIComponent(params.id)}`;
   }
   if (page === 'chat-window' && params.chatId) {
-    return `#/chat/${encodeURIComponent(params.chatId)}`;
+    const query = new URLSearchParams();
+    if (params.title) query.set('title', params.title);
+    if (params.adId) query.set('adId', params.adId);
+    if (params.profileUserId) query.set('profileUserId', params.profileUserId);
+    if (params.profileName) query.set('profileName', params.profileName);
+    const suffix = query.toString() ? `?${query.toString()}` : '';
+    return `#/chat/${encodeURIComponent(params.chatId)}${suffix}`;
   }
   if (page === 'profile' && params.userId) {
     return `#/profile/${encodeURIComponent(params.userId)}`;

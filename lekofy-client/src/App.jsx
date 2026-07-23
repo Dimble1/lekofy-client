@@ -9,6 +9,7 @@ import PublishAd from './pages/PublishAd.jsx';
 import AdDetail from './pages/AdDetail.jsx';
 import Favorites from './pages/Favorites.jsx';
 import ChatList from './pages/ChatList.jsx';
+import ChatWindow from './pages/ChatWindow.jsx';
 import Profile from './pages/Profile.jsx';
 import Admin from './pages/Admin.jsx';
 import Notifications from './pages/Notifications.jsx';
@@ -41,11 +42,12 @@ function App() {
   else if (page === 'my-ads') content = <MyAds initialEditId={params?.editId} />;
   else if (page === 'chat-window') {
     content = (
-      <ChatList
-        initialChatId={params?.chatId}
-        initialTitle={params?.title}
-        initialProfileUserId={params?.profileUserId}
-        initialProfileName={params?.profileName}
+      <ChatWindow
+        chatId={params?.chatId}
+        title={params?.title}
+        adId={params?.adId}
+        profileUserId={params?.profileUserId}
+        profileName={params?.profileName}
       />
     );
   }

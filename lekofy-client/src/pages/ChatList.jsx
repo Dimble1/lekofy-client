@@ -15,6 +15,7 @@ function ChatList({ initialChatId, initialTitle, initialProfileUserId, initialPr
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [activeChat, setActiveChat] = useState(null);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
 
   const formatTime = (value) => {
     if (!value) return '';
@@ -99,6 +100,20 @@ function ChatList({ initialChatId, initialTitle, initialProfileUserId, initialPr
     loadChats();
   }, [isLoggedIn, navigate, loadChats]);
 
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 768px)');
+    const onChange = (event) => setIsMobile(event.matches);
+
+    setIsMobile(media.matches);
+    if (media.addEventListener) {
+      media.addEventListener('change', onChange);
+      return () => media.removeEventListener('change', onChange);
+    }
+
+    media.addListener(onChange);
+    return () => media.removeListener(onChange);
+  }, []);
+
   const visibleChats = useMemo(() => {
     const normalized = searchQuery.trim().toLowerCase();
 
@@ -173,13 +188,13 @@ function ChatList({ initialChatId, initialTitle, initialProfileUserId, initialPr
                     tabIndex={0}
                     onClick={() => {
                       setActiveChat(meta);
-                      navigate('chat', meta);
+                      navigate(isMobile ? 'chat-window' : 'chat', meta);
                     }}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter' || event.key === ' ') {
                         event.preventDefault();
                         setActiveChat(meta);
-                        navigate('chat', meta);
+                        navigate(isMobile ? 'chat-window' : 'chat', meta);
                       }
                     }}
                   >
@@ -214,22 +229,24 @@ function ChatList({ initialChatId, initialTitle, initialProfileUserId, initialPr
           )}
         </div>
 
-        <div className="neo-chat-main-col">
-          {activeChat ? (
-            <ChatWindow
-              chatId={activeChat.chatId}
-              adId={activeChat.adId}
-              title={activeChat.title}
-              profileUserId={activeChat.profileUserId}
-              profileName={activeChat.profileName}
-              embedded
-            />
-          ) : (
-            <div className="neo-window neo-chat-placeholder">
-              <div className="empty">Выберите чат слева</div>
-            </div>
-          )}
-        </div>
+        {!isMobile && (
+          <div className="neo-chat-main-col">
+            {activeChat ? (
+              <ChatWindow
+                chatId={activeChat.chatId}
+                adId={activeChat.adId}
+                title={activeChat.title}
+                profileUserId={activeChat.profileUserId}
+                profileName={activeChat.profileName}
+                embedded
+              />
+            ) : (
+              <div className="neo-window neo-chat-placeholder">
+                <div className="empty">Выберите чат слева</div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
