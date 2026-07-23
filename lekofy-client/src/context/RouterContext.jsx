@@ -4,35 +4,37 @@ const RouterContext = createContext(null);
 
 function parseHashRoute(hash) {
   const cleanHash = String(hash || '').replace(/^#/, '').replace(/\/?$/, '');
+  const [pathPart, queryString = ''] = cleanHash.split('?');
+  const params = new URLSearchParams(queryString);
 
-  if (!cleanHash || cleanHash === '/') {
+  if (!pathPart || pathPart === '/') {
     return { page: 'home', params: {} };
   }
 
-  const adMatch = cleanHash.match(/^\/ad\/([^/]+)$/);
+  const adMatch = pathPart.match(/^\/ad\/([^/]+)$/);
   if (adMatch) {
     return { page: 'ad-detail', params: { id: decodeURIComponent(adMatch[1]) } };
   }
 
-  const chatMatch = cleanHash.match(/^\/chat\/([^/]+)$/);
+  const chatMatch = pathPart.match(/^\/chat\/([^/]+)$/);
   if (chatMatch) {
     return { page: 'chat-window', params: { chatId: decodeURIComponent(chatMatch[1]) } };
   }
 
-  const profileMatch = cleanHash.match(/^\/profile\/([^/]+)$/);
+  const profileMatch = pathPart.match(/^\/profile\/([^/]+)$/);
   if (profileMatch) {
     return { page: 'profile', params: { userId: decodeURIComponent(profileMatch[1]) } };
   }
 
-  if (cleanHash === '/chat') return { page: 'chat', params: {} };
-  if (cleanHash === '/my-ads') return { page: 'my-ads', params: {} };
-  if (cleanHash === '/favorites') return { page: 'favorites', params: {} };
-  if (cleanHash === '/notifications') return { page: 'notifications', params: {} };
-  if (cleanHash === '/login') return { page: 'login', params: {} };
-  if (cleanHash === '/register') return { page: 'register', params: {} };
-  if (cleanHash === '/publish') return { page: 'publish', params: {} };
-  if (cleanHash === '/admin') return { page: 'admin', params: {} };
-  if (cleanHash === '/settings') return { page: 'settings', params: {} };
+  if (pathPart === '/chat') return { page: 'chat', params: {} };
+  if (pathPart === '/my-ads') return { page: 'my-ads', params: params.get('editId') ? { editId: params.get('editId') } : {} };
+  if (pathPart === '/favorites') return { page: 'favorites', params: {} };
+  if (pathPart === '/notifications') return { page: 'notifications', params: {} };
+  if (pathPart === '/login') return { page: 'login', params: {} };
+  if (pathPart === '/register') return { page: 'register', params: {} };
+  if (pathPart === '/publish') return { page: 'publish', params: {} };
+  if (pathPart === '/admin') return { page: 'admin', params: {} };
+  if (pathPart === '/settings') return { page: 'settings', params: {} };
 
   return { page: 'home', params: {} };
 }
@@ -48,7 +50,9 @@ function buildHash(page, params = {}) {
     return `#/profile/${encodeURIComponent(params.userId)}`;
   }
   if (page === 'chat') return '#/chat';
-  if (page === 'my-ads') return '#/my-ads';
+  if (page === 'my-ads') {
+    return params.editId ? `#/my-ads?editId=${encodeURIComponent(params.editId)}` : '#/my-ads';
+  }
   if (page === 'favorites') return '#/favorites';
   if (page === 'notifications') return '#/notifications';
   if (page === 'login') return '#/login';

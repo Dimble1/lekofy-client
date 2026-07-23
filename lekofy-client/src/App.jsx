@@ -38,7 +38,7 @@ function App() {
       />
     );
   }
-  else if (page === 'my-ads') content = <MyAds />;
+  else if (page === 'my-ads') content = <MyAds initialEditId={params?.editId} />;
   else if (page === 'chat-window') {
     content = (
       <ChatList

@@ -76,8 +76,8 @@ function CreateAd() {
       if (!res.ok || data.error) {
         throw new Error(data.error || 'Ошибка публикации');
       }
-      alert('Объявление отправлено на модерацию! Оно появится после проверки.');
-      navigate('home');
+      alert('Объявление опубликовано!');
+      navigate('my-ads', data?.id ? { editId: data.id } : {});
     } catch (e2) {
       setError(e2.message || 'Ошибка публикации');
     } finally {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import '../styles/AdForm.css';
 import { adsAPI } from '../services/api';
+import { useRouter } from '../context/RouterContext.jsx';
 
 // helper to create input components based on type
 const renderField = (field, value, onChange, error) => {
@@ -34,6 +35,7 @@ const renderField = (field, value, onChange, error) => {
 };
 
 const AdForm = ({ category, onBack }) => {
+  const { navigate } = useRouter();
   // initial form values
   const initialData = {
     title: '',
@@ -137,9 +139,9 @@ const AdForm = ({ category, onBack }) => {
         payload.append('images', image);
       });
 
-      await adsAPI.create(payload);
+      const created = await adsAPI.create(payload);
       alert('Объявление опубликовано!');
-      // Можно добавить навигацию на home или мои объявления
+      navigate('my-ads', created?.id ? { editId: created.id } : {});
     } catch (error) {
       alert('Ошибка при публикации: ' + error.message);
     }

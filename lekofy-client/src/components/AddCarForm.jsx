@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import '../styles/AddCarForm.css';
 import { adsAPI } from '../services/api';
+import { useRouter } from '../context/RouterContext.jsx';
 
 const AddCarForm = ({ onBack }) => {
+  const { navigate } = useRouter();
   const [formData, setFormData] = useState({
     brand: '',
     model: '',
@@ -283,9 +285,9 @@ const AddCarForm = ({ onBack }) => {
     });
 
     try {
-      await adsAPI.create(formDataToSend);
+      const created = await adsAPI.create(formDataToSend);
       alert('Объявление опубликовано!');
-      // Можно добавить навигацию
+      navigate('my-ads', created?.id ? { editId: created.id } : {});
     } catch (error) {
       alert('Ошибка при публикации: ' + error.message);
     }

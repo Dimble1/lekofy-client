@@ -31,7 +31,7 @@ function normalizeAds(payload) {
   return [];
 }
 
-function MyAds() {
+function MyAds({ initialEditId = null }) {
   const { user, isLoggedIn } = useAuth();
   const { navigate } = useRouter();
 
@@ -96,6 +96,15 @@ function MyAds() {
 
     load();
   }, [isLoggedIn, navigate]);
+
+  useEffect(() => {
+    if (!initialEditId || ads.length === 0 || editState.adId) return;
+
+    const found = ads.find((ad) => String(ad?.id) === String(initialEditId));
+    if (found) {
+      openEditModal(found);
+    }
+  }, [ads, editState.adId, initialEditId]);
 
   const filteredAds = useMemo(() => {
     return ads.filter((ad) => {

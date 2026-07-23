@@ -215,7 +215,7 @@ function Home() {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [draftQuery, setDraftQuery] = useState('');
-  const [city, setCity] = useState('Бишкек');
+  const [city, setCity] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [activeQuickFilter, setActiveQuickFilter] = useState('recent');
   const [favoriteIds, setFavoriteIds] = useState(() => new Set());
@@ -440,6 +440,7 @@ function Home() {
 
             <div className="home-search__field">
               <select value={city} onChange={(event) => setCity(event.target.value)}>
+                <option value="">Все города</option>
                 <option value="Бишкек">Бишкек</option>
                 <option value="Ош">Ош</option>
                 <option value="Джалал-Абад">Джалал-Абад</option>
