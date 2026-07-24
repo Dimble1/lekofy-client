@@ -62,6 +62,31 @@ const cleanupTyping = (chatId) => {
   return Array.from(map.keys()).map((id) => Number(id));
 };
 
+router.get('/:chatId', auth, async (req, res) => {
+  try {
+    const access = await assertChatMember(req.params.chatId, req.user.id);
+    if (access.error) {
+      return res.status(access.error.status).json({ error: access.error.message });
+    }
+
+    const chat = await Chat.findByPk(req.params.chatId, {
+      include: [
+        { model: Ad, as: 'Ad', attributes: ['id', 'title', 'price', 'city', 'images', 'category', 'userId'], required: false },
+        { model: User, as: 'Buyer', attributes: ['id', 'name'], required: false },
+        { model: User, as: 'Seller', attributes: ['id', 'name', 'avatar'], required: false },
+      ],
+    });
+
+    if (!chat) {
+      return res.status(404).json({ error: 'Чат не найден' });
+    }
+
+    res.json(chat);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Получить список чатов
 router.get('/', auth, async (req, res) => {
   try {
