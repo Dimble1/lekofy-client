@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { adsAPI, favoritesAPI, resolveMediaUrl } from '../services/api';
+import { adsAPI, favoritesAPI, resolveMediaUrl, normalizeMediaList } from '../services/api';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useRouter } from '../context/RouterContext.jsx';
 import { categories } from '../data/categories';
@@ -63,8 +63,7 @@ function formatRelative(value) {
 }
 
 function getImage(ad) {
-  if (Array.isArray(ad?.images) && ad.images.length) return ad.images[0];
-  return '';
+  return normalizeMediaList(ad?.images)[0] || '';
 }
 
 function getCity(ad) {

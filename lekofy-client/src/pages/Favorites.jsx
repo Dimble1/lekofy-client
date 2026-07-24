@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { favoritesAPI, resolveMediaUrl } from '../services/api';
+import { favoritesAPI, resolveMediaUrl, normalizeMediaList } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import LoadingAnimation from '../components/LoadingAnimation.jsx';
@@ -162,7 +162,7 @@ function Favorites() {
         <div className="favorites-grid">
           {sortedAds.map((ad) => {
             const adId = ad?.id;
-            const imageUrl = Array.isArray(ad?.images) && ad.images.length ? ad.images[0] : null;
+            const imageUrl = normalizeMediaList(ad?.images)[0] || null;
             const price = parsePrice(ad?.price);
 
             return (

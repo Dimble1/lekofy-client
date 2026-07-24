@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { adsAPI, favoritesAPI, chatAPI, profileAPI, resolveMediaUrl } from '../services/api';
+import { adsAPI, favoritesAPI, chatAPI, profileAPI, resolveMediaUrl, normalizeMediaList } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { categories } from '../data/categories';
@@ -340,7 +340,7 @@ function AdDetail({ adId }) {
     });
   };
 
-  const safeImages = Array.isArray(ad?.images) ? ad.images.filter(Boolean) : [];
+  const safeImages = normalizeMediaList(ad?.images);
 
   const descriptionText = (ad?.description && String(ad.description).trim())
     || (meta.description && String(meta.description).trim())

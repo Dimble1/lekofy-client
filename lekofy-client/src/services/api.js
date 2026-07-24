@@ -1,11 +1,15 @@
 ﻿// Р‘Р°Р·РѕРІС‹Р№ URL РґР»СЏ API
-const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const rawApiUrl = (import.meta.env.VITE_API_URL || '/api').trim();
 export const API_URL = rawApiUrl.replace(/\/+$/, '');
 const API_ORIGIN = (() => {
-  try {
-    return new URL(API_URL).origin;
-  } catch {
+  if (typeof window === 'undefined') {
     return 'http://localhost:3000';
+  }
+
+  try {
+    return new URL(API_URL, window.location.origin).origin;
+  } catch {
+    return window.location.origin;
   }
 })();
 
@@ -18,6 +22,30 @@ export const resolveMediaUrl = (value) => {
 
   return `${API_ORIGIN}/${url.replace(/^\/+/, '')}`;
 };
+
+export const normalizeMediaList = (value) => {
+  if (Array.isArray(value)) {
+    return value.filter(Boolean);
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(Boolean);
+      }
+    } catch {
+      return [trimmed];
+    }
+  }
+
+  return [];
+};
+
+export const getFirstMedia = (value) => normalizeMediaList(value)[0] || '';
 
 // Р¤СѓРЅРєС†РёСЏ РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ С‚РѕРєРµРЅР° РёР· localStorage
 const getToken = () => localStorage.getItem('token');

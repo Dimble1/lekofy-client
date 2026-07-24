@@ -3,24 +3,24 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useRouter } from '../context/RouterContext.jsx';
 
 const NAV_LINKS = [
-  { label: 'РљР°С‚РµРіРѕСЂРёРё', target: 'categories' },
-  { label: 'РќРѕРІС‹Рµ', target: 'new-ads' },
-  { label: 'РџРѕРїСѓР»СЏСЂРЅС‹Рµ', target: 'popular-ads' },
-  { label: 'Р”РѕРІРµСЂРёРµ', target: 'trust' },
+  { label: 'Категории', target: 'categories' },
+  { label: 'Новые', target: 'new-ads' },
+  { label: 'Популярные', target: 'popular-ads' },
+  { label: 'Доверие', target: 'trust' },
 ];
 
 const MOBILE_NAV_ITEMS = [
-  { key: 'home', label: 'Р“Р»Р°РІРЅР°СЏ', icon: 'fa-house', target: 'home' },
-  { key: 'favorites', label: 'РР·Р±СЂР°РЅРЅРѕРµ', icon: 'fa-heart', target: 'favorites' },
-  { key: 'publish', label: 'РџРѕРґР°С‚СЊ', icon: 'fa-plus', target: 'publish', center: true },
-  { key: 'chat', label: 'Р§Р°С‚С‹', icon: 'fa-comments', target: 'chat' },
-  { key: 'profile', label: 'РџСЂРѕС„РёР»СЊ', icon: 'fa-user', target: 'profile' },
+  { key: 'home', label: 'Главная', icon: 'fa-house', target: 'home' },
+  { key: 'favorites', label: 'Избранное', icon: 'fa-heart', target: 'favorites' },
+  { key: 'publish', label: 'Подать', icon: 'fa-plus', target: 'publish', center: true },
+  { key: 'chat', label: 'Чаты', icon: 'fa-comments', target: 'chat' },
+  { key: 'profile', label: 'Профиль', icon: 'fa-user', target: 'profile' },
 ];
 
 function Navbar() {
   const { isLoggedIn, user } = useAuth();
   const { navigate, page } = useRouter();
-  const actionLabel = 'РџРѕРґР°С‚СЊ РѕР±СЉСЏРІР»РµРЅРёРµ';
+  const actionLabel = 'Подать объявление';
   const isHome = page === 'home';
 
   const scrollToSection = (target) => {

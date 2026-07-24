@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { adsAPI, resolveMediaUrl } from '../services/api';
+﻿import { useEffect, useMemo, useState } from 'react';
+import { adsAPI, resolveMediaUrl, normalizeMediaList } from '../services/api';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useRouter } from '../context/RouterContext.jsx';
 import { categories } from '../data/categories';
@@ -184,7 +184,7 @@ function MyAds({ initialEditId = null }) {
         category: ad.category || '',
         city: ad.city || '',
         phone: ad.phone || '',
-        images: Array.isArray(ad.images) ? ad.images : [],
+        images: normalizeMediaList(ad.images),
       },
     });
   };
@@ -388,8 +388,8 @@ function MyAds({ initialEditId = null }) {
               return (
                 <article key={ad.id} className="my-ads-item">
                   <div className="my-ads-image-wrap">
-                    {Array.isArray(ad.images) && ad.images[0] ? (
-                      <img src={resolveMediaUrl(ad.images[0])} alt={ad.title || 'Объявление'} />
+                    {normalizeMediaList(ad.images)[0] ? (
+                      <img src={resolveMediaUrl(normalizeMediaList(ad.images)[0])} alt={ad.title || 'Объявление'} />
                     ) : (
                       <div className="my-ads-image-placeholder">Нет фото</div>
                     )}
@@ -558,3 +558,5 @@ function MyAds({ initialEditId = null }) {
 }
 
 export default MyAds;
+
+
