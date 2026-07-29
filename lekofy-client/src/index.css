@@ -1727,8 +1727,8 @@ html, body, #root {
 .chat-page-full {
   max-width: 100%;
   width: 100%;
-  min-height: calc(100vh - 80px);
-  padding: 16px;
+  min-height: calc(100dvh - 80px);
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
   background: #0d0f14;
   overflow-x: hidden;
 }
@@ -2123,12 +2123,12 @@ html, body, #root {
   }
 
   .neo-chat-list-wrap {
-    height: calc(100vh - 140px);
+    height: calc(100dvh - 140px);
   }
 
   .neo-chat-shell {
     grid-template-columns: minmax(0, 1fr);
-    min-height: calc(100vh - 140px);
+    min-height: calc(100dvh - 140px);
   }
 
   .neo-msg-bubble {
@@ -2146,15 +2146,15 @@ html, body, #root {
   max-width: none !important;
   margin: 0 !important;
   padding: 0 !important;
-  min-height: calc(100vh - 80px);
+  min-height: calc(100dvh - 80px);
   background: #0d0f14;
   overflow-x: hidden;
 }
 
 .chat-page-full .neo-chat-shell {
   width: 100%;
-  min-height: calc(100vh - 80px);
-  height: calc(100vh - 80px);
+  min-height: calc(100dvh - 80px);
+  height: calc(100dvh - 80px);
   display: grid;
   grid-template-columns: 360px minmax(0, 1fr);
   gap: 0;
@@ -2225,16 +2225,16 @@ html, body, #root {
   .chat-page-full .neo-chat-shell {
     grid-template-columns: minmax(0, 1fr);
     height: auto;
-    min-height: calc(100vh - 80px);
+    min-height: calc(100dvh - 80px);
   }
 
   .chat-page-full .neo-chat-list-wrap {
-    height: 48vh;
+    height: 48dvh;
   }
 
   .chat-page-full .neo-chat-main-col,
   .chat-page-full .neo-chat-window-wrap {
-    height: 52vh;
+    height: 52dvh;
   }
 }
 
@@ -2243,8 +2243,8 @@ html, body, #root {
   position: relative;
   width: 100% !important;
   max-width: none !important;
-  min-height: calc(100vh - 80px);
-  padding: 18px !important;
+  min-height: calc(100dvh - 80px);
+  padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px)) !important;
   overflow-x: hidden;
   background:
     radial-gradient(circle at 12% 0%, rgba(59, 130, 246, 0.18), transparent 28%),
@@ -2268,8 +2268,8 @@ html, body, #root {
   position: relative;
   z-index: 1;
   width: 100%;
-  min-height: calc(100vh - 116px);
-  height: calc(100vh - 116px);
+  min-height: calc(100dvh - 116px);
+  height: calc(100dvh - 116px);
   display: grid;
   grid-template-columns: 380px minmax(0, 1fr);
   gap: 18px;
@@ -2756,7 +2756,7 @@ html, body, #root {
 
 @media (max-width: 640px) {
   .chat-page-full {
-    min-height: calc(100vh - 72px);
+    min-height: calc(100dvh - 72px);
   }
 
   .chat-page-full .neo-chat-list-wrap,

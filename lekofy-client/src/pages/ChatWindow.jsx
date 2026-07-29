@@ -63,6 +63,7 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
   const emojiPanelRef = useRef(null);
   const menuPanelRef = useRef(null);
   const textareaRef = useRef(null);
+  const inputWrapRef = useRef(null);
 
   const loadMessages = useCallback(
     async (withLoader = false) => {
@@ -167,6 +168,15 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
   useEffect(() => {
     refreshChatContext();
   }, [chatId, refreshChatContext]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+
+    document.body.classList.add('chat-focus-mode');
+    return () => {
+      document.body.classList.remove('chat-focus-mode');
+    };
+  }, []);
 
   useEffect(() => {
     if (!adId) return;
@@ -389,6 +399,12 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
     }
   };
 
+  const handleComposerFocus = () => {
+    requestAnimationFrame(() => {
+      inputWrapRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+    });
+  };
+
   const quickReplies = useMemo(() => {
     const list = [...customReplies, ...QUICK_REPLIES];
     return Array.from(new Set(list));
@@ -558,7 +574,7 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
         ))}
       </div>
 
-      <div className="neo-input-wrap">
+      <div className="neo-input-wrap" ref={inputWrapRef}>
         <div className="neo-input-tools" ref={emojiPanelRef}>
           <button type="button" className="neo-icon-btn" onClick={() => setEmojiOpen((value) => !value)} title="Эмодзи">
             <span>🙂</span>
@@ -591,6 +607,7 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
           value={text}
           onChange={(event) => handleTextChange(event.target.value)}
           onKeyDown={handleKey}
+          onFocus={handleComposerFocus}
           placeholder="Введите сообщение..."
           rows={1}
           className="neo-input"

@@ -1807,6 +1807,10 @@ body {
     padding-bottom: 92px;
   }
 
+  body.chat-focus-mode {
+    padding-bottom: 0;
+  }
+
   .home-actions {
     display: none;
   }
@@ -1888,5 +1892,9 @@ body {
 
   .mobile-bottom-nav__item:hover .mobile-bottom-nav__icon {
     transform: translateY(-1px);
+  }
+
+  body.chat-focus-mode .mobile-bottom-nav {
+    display: none;
   }
 }
