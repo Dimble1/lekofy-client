@@ -7,16 +7,12 @@ const Message = require('../models/Message');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const { Op } = require('sequelize');
-const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
-const fs = require('fs');
 const { sendTelegramNotification } = require('../services/telegram');
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+const {
+  uploadTempFileToSupabase,
+  cleanupTempFile,
+} = require('../services/supabaseStorage');
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -49,6 +45,22 @@ function getCategoryVariants(category) {
   const group = CATEGORY_GROUPS.find((g) => g.includes(normalized));
   if (!group) return [normalized];
   return group;
+}
+
+function normalizeStringArray(value) {
+  if (value === undefined || value === null) return undefined;
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed.filter(Boolean);
+    } catch (_e) {
+      return [trimmed];
+    }
+  }
+  return [];
 }
 
 const formatSom = (value) => {
@@ -207,7 +219,7 @@ router.post('/', auth, upload.array('images', 20), async (req, res) => {
     // РђРІС‚РѕРїСЂРѕРІРµСЂРєР° вЂ” РµСЃР»Рё Р·Р°РїСЂРµС‰С‘РЅРЅС‹Рµ СЃР»РѕРІР°, СЃСЂР°Р·Сѓ РѕС‚РєР»РѕРЅСЏРµРј
     if (containsBannedWords(title) || containsBannedWords(description)) {
       // РЈРґР°Р»СЏРµРј Р·Р°РіСЂСѓР¶РµРЅРЅС‹Рµ С„Р°Р№Р»С‹
-      if (req.files) req.files.forEach(f => { try { fs.unlinkSync(f.path); } catch(e){} });
+      if (req.files) req.files.forEach((f) => cleanupTempFile(f.path));
       return res.status(400).json({ error: 'РћР±СЉСЏРІР»РµРЅРёРµ СЃРѕРґРµСЂР¶РёС‚ Р·Р°РїСЂРµС‰С‘РЅРЅС‹Рµ СЃР»РѕРІР° Рё РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ РѕРїСѓР±Р»РёРєРѕРІР°РЅРѕ' });
     }
 
@@ -232,25 +244,33 @@ router.post('/', auth, upload.array('images', 20), async (req, res) => {
     const finalMeta = { ...((typeof incomingMeta === 'object' && incomingMeta !== null) ? incomingMeta : {}), ...extraMeta };
     let imageUrls = [];
     const uploadErrors = [];
+
+    const incomingImages = normalizeStringArray(req.body.images);
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
         try {
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: 'lekofy'
+          const result = await uploadTempFileToSupabase(file.path, {
+            folder: 'ads',
+            originalName: file.originalname,
+            mimetype: file.mimetype,
           });
-          imageUrls.push(result.secure_url);
+          imageUrls.push(result.url);
         } catch (uploadErr) {
           console.error('Ошибка загрузки фото:', uploadErr.message);
           uploadErrors.push(uploadErr.message);
         } finally {
-          try { fs.unlinkSync(file.path); } catch (_e) {}
+          cleanupTempFile(file.path);
         }
       }
     }
 
+    if (incomingImages !== undefined && incomingImages.length > 0) {
+      imageUrls = [...imageUrls, ...incomingImages];
+    }
+
     if (req.files && req.files.length > 0 && imageUrls.length === 0) {
       return res.status(500).json({
-        error: 'Не удалось загрузить фото. Проверьте Cloudinary переменные окружения на Render.',
+        error: 'Не удалось загрузить фото. Проверьте переменные Supabase Storage и bucket.',
       });
     }
 
@@ -345,22 +365,6 @@ router.put('/:id', auth, upload.array('images', 20), async (req, res) => {
     const mergedMeta = { ...(ad.meta || {}), ...((typeof incomingMeta === 'object' && incomingMeta !== null) ? incomingMeta : {}), ...extraMeta };
     updates.meta = mergedMeta;
 
-    const normalizeStringArray = (value) => {
-      if (value === undefined || value === null) return undefined;
-      if (Array.isArray(value)) return value.filter(Boolean);
-      if (typeof value === 'string') {
-        const trimmed = value.trim();
-        if (!trimmed) return [];
-        try {
-          const parsed = JSON.parse(trimmed);
-          if (Array.isArray(parsed)) return parsed.filter(Boolean);
-        } catch (_e) {
-          return [trimmed];
-        }
-      }
-      return [];
-    };
-
     const keepImages = normalizeStringArray(req.body.existingImages);
     const incomingImages = normalizeStringArray(images);
 
@@ -368,12 +372,14 @@ router.put('/:id', auth, upload.array('images', 20), async (req, res) => {
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
         try {
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: 'lekofy',
+          const result = await uploadTempFileToSupabase(file.path, {
+            folder: 'ads',
+            originalName: file.originalname,
+            mimetype: file.mimetype,
           });
-          uploadedUrls.push(result.secure_url);
+          uploadedUrls.push(result.url);
         } finally {
-          try { fs.unlinkSync(file.path); } catch (_e) {}
+          cleanupTempFile(file.path);
         }
       }
     }
@@ -381,15 +387,15 @@ router.put('/:id', auth, upload.array('images', 20), async (req, res) => {
     if (keepImages !== undefined || incomingImages !== undefined || uploadedUrls.length > 0) {
       const baseImages = keepImages !== undefined
         ? keepImages
-        : (incomingImages !== undefined ? incomingImages : (Array.isArray(ad.images) ? ad.images : []));
-      updates.images = [...baseImages, ...uploadedUrls];
+        : (Array.isArray(ad.images) ? ad.images : []);
+      updates.images = [...baseImages, ...(incomingImages || []), ...uploadedUrls];
     }
 
     await ad.update(updates);
     res.json(ad);
   } catch (err) {
     if (req.files && req.files.length > 0) {
-      req.files.forEach((f) => { try { fs.unlinkSync(f.path); } catch (_e) {} });
+      req.files.forEach((f) => cleanupTempFile(f.path));
     }
     res.status(500).json({ error: err.message });
   }

@@ -5,8 +5,10 @@ const auth = require('../middleware/auth');
 const UserModel = require('../models/User');
 const Ad = require('../models/Ad');
 const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
-const fs = require('fs');
+const {
+  uploadTempFileToSupabase,
+  cleanupTempFile,
+} = require('../services/supabaseStorage');
 const {
   normalizePhoneNumber,
   isValidPhoneNumber,
@@ -344,22 +346,30 @@ router.put('/me', auth, upload.single('avatar'), async (req, res) => {
     }
     if (bio !== undefined) user.bio = bio;
 
+    const avatarUrl = typeof req.body?.avatarUrl === 'string' ? req.body.avatarUrl.trim() : '';
+    const fallbackAvatar = typeof req.body?.avatar === 'string' ? req.body.avatar.trim() : '';
+
     if (req.file) {
       try {
-        const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: 'lekofy-avatars',
-          transformation: [{ width: 300, height: 300, crop: 'fill', gravity: 'face' }],
+        const result = await uploadTempFileToSupabase(req.file.path, {
+          folder: 'avatars',
+          originalName: req.file.originalname,
+          mimetype: req.file.mimetype,
         });
-        user.avatar = result.secure_url;
+        user.avatar = result.url;
       } catch (e) {
         console.error('Ошибка загрузки аватара:', e.message);
       } finally {
         try {
-          fs.unlinkSync(req.file.path);
+          cleanupTempFile(req.file.path);
         } catch (e) {
           // ignore cleanup errors
         }
       }
+    } else if (avatarUrl) {
+      user.avatar = avatarUrl;
+    } else if (fallbackAvatar) {
+      user.avatar = fallbackAvatar;
     }
 
     await user.save();

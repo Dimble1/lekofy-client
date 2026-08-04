@@ -5,15 +5,11 @@ const Message = require('../models/Message');
 const User = require('../models/User');
 const Ad = require('../models/Ad');
 const { Op } = require('sequelize');
-const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
-const fs = require('fs');
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+const {
+  uploadTempFileToSupabase,
+  cleanupTempFile,
+} = require('../services/supabaseStorage');
 
 const upload = multer({ dest: 'uploads/' });
 const TYPING_TTL_MS = 5000;
@@ -198,26 +194,35 @@ router.post('/:chatId/messages/image', auth, upload.single('image'), async (req,
       return res.status(access.error.status).json({ error: access.error.message });
     }
 
-    if (!req.file) {
+    const incomingImageUrl = typeof req.body?.imageUrl === 'string' ? req.body.imageUrl.trim() : '';
+    const fallbackImageUrl = typeof req.body?.image === 'string' ? req.body.image.trim() : '';
+    let imageUrl = incomingImageUrl || fallbackImageUrl;
+
+    if (req.file) {
+      if (!String(req.file.mimetype || '').startsWith('image/')) {
+        cleanupTempFile(req.file.path);
+        return res.status(400).json({ error: 'Разрешено отправлять только фото' });
+      }
+
+      const result = await uploadTempFileToSupabase(req.file.path, {
+        folder: 'chat',
+        originalName: req.file.originalname,
+        mimetype: req.file.mimetype,
+      });
+
+      cleanupTempFile(req.file.path);
+      imageUrl = result.url;
+    }
+
+    if (!imageUrl) {
       return res.status(400).json({ error: 'Фото не передано' });
     }
-
-    if (!String(req.file.mimetype || '').startsWith('image/')) {
-      try { fs.unlinkSync(req.file.path); } catch (_e) {}
-      return res.status(400).json({ error: 'Разрешено отправлять только фото' });
-    }
-
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'lekofy/chat',
-    });
-
-    try { fs.unlinkSync(req.file.path); } catch (_e) {}
 
     const message = await Message.create({
       chatId: req.params.chatId,
       senderId: req.user.id,
       text: null,
-      imageUrl: result.secure_url,
+      imageUrl,
     });
 
     const withSender = await Message.findByPk(message.id, {
@@ -227,7 +232,7 @@ router.post('/:chatId/messages/image', auth, upload.single('image'), async (req,
     res.json(withSender);
   } catch (err) {
     if (req.file?.path) {
-      try { fs.unlinkSync(req.file.path); } catch (_e) {}
+      cleanupTempFile(req.file.path);
     }
     res.status(500).json({ error: err.message });
   }

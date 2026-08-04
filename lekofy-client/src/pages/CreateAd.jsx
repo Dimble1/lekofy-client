@@ -1,7 +1,7 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useRouter } from '../context/RouterContext.jsx';
-import { API_URL } from '../services/api';
+import { adsAPI, uploadFilesToSupabase } from '../services/api';
 
 function CreateAd() {
   const { isLoggedIn } = useAuth();
@@ -26,7 +26,7 @@ function CreateAd() {
     const picked = Array.from(e.target.files || []);
     if (picked.length === 0) return;
 
-    // Позволяет повторно выбрать те же файлы.
+    // РџРѕР·РІРѕР»СЏРµС‚ РїРѕРІС‚РѕСЂРЅРѕ РІС‹Р±СЂР°С‚СЊ С‚Рµ Р¶Рµ С„Р°Р№Р»С‹.
     e.target.value = '';
 
     setFiles((prev) => {
@@ -50,13 +50,14 @@ function CreateAd() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title || !price) {
-      setError('Заполните название и цену');
+      setError('Р—Р°РїРѕР»РЅРёС‚Рµ РЅР°Р·РІР°РЅРёРµ Рё С†РµРЅСѓ');
       return;
     }
     setLoading(true);
     setError('');
 
     try {
+      const imageUrls = await uploadFilesToSupabase(files, { folder: 'ads' });
       const formData = new FormData();
       formData.append('title', title);
       formData.append('description', description);
@@ -64,22 +65,13 @@ function CreateAd() {
       formData.append('phone', phone);
       formData.append('category', category);
       formData.append('city', city);
-      files.forEach((file) => formData.append('images', file));
+      imageUrls.forEach((url) => formData.append('images', url));
 
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/ads`, {
-        method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok || data.error) {
-        throw new Error(data.error || 'Ошибка публикации');
-      }
+      const data = await adsAPI.create(formData);
       alert('Объявление опубликовано!');
       navigate('my-ads', data?.id ? { editId: data.id } : {});
-    } catch (e2) {
-      setError(e2.message || 'Ошибка публикации');
+    } catch (err) {
+      setError(err.message || 'Ошибка публикации');
     } finally {
       setLoading(false);
     }
@@ -93,9 +85,9 @@ function CreateAd() {
           style={{ marginBottom: 16 }}
           onClick={() => navigate('home')}
         >
-          ← Назад
+          в†ђ РќР°Р·Р°Рґ
         </button>
-        <h2>Подать объявление</h2>
+        <h2>РџРѕРґР°С‚СЊ РѕР±СЉСЏРІР»РµРЅРёРµ</h2>
         <div
           style={{
             background: '#fff3e0',
@@ -106,30 +98,30 @@ function CreateAd() {
             color: '#e65100',
           }}
         >
-          ⏳ Объявление появится после проверки модератором
+          вЏі РћР±СЉСЏРІР»РµРЅРёРµ РїРѕСЏРІРёС‚СЃСЏ РїРѕСЃР»Рµ РїСЂРѕРІРµСЂРєРё РјРѕРґРµСЂР°С‚РѕСЂРѕРј
         </div>
 
         <form onSubmit={handleSubmit} className="modal-form">
           <label>
-            Название *
+            РќР°Р·РІР°РЅРёРµ *
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Например: iPhone 14 Pro"
+              placeholder="РќР°РїСЂРёРјРµСЂ: iPhone 14 Pro"
             />
           </label>
           <label>
-            Описание
+            РћРїРёСЃР°РЅРёРµ
             <textarea
               rows="4"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Опишите товар подробнее..."
+              placeholder="РћРїРёС€РёС‚Рµ С‚РѕРІР°СЂ РїРѕРґСЂРѕР±РЅРµРµ..."
             />
           </label>
           <label>
-            Цена (сом) *
+            Р¦РµРЅР° (СЃРѕРј) *
             <input
               type="number"
               value={price}
@@ -138,7 +130,7 @@ function CreateAd() {
             />
           </label>
           <label>
-            Номер телефона
+            РќРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°
             <input
               type="text"
               value={phone}
@@ -147,34 +139,34 @@ function CreateAd() {
             />
           </label>
           <label>
-            Категория
+            РљР°С‚РµРіРѕСЂРёСЏ
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             >
-              <option value="">Выберите категорию</option>
-              <option value="electronics">Электроника</option>
-              <option value="transport">Транспорт</option>
-              <option value="realty">Недвижимость</option>
-              <option value="clothes">Одежда</option>
-              <option value="furniture">Мебель</option>
-              <option value="jobs">Работа</option>
-              <option value="services">Услуги</option>
-              <option value="other">Другое</option>
+              <option value="">Р’С‹Р±РµСЂРёС‚Рµ РєР°С‚РµРіРѕСЂРёСЋ</option>
+              <option value="electronics">Р­Р»РµРєС‚СЂРѕРЅРёРєР°</option>
+              <option value="transport">РўСЂР°РЅСЃРїРѕСЂС‚</option>
+              <option value="realty">РќРµРґРІРёР¶РёРјРѕСЃС‚СЊ</option>
+              <option value="clothes">РћРґРµР¶РґР°</option>
+              <option value="furniture">РњРµР±РµР»СЊ</option>
+              <option value="jobs">Р Р°Р±РѕС‚Р°</option>
+              <option value="services">РЈСЃР»СѓРіРё</option>
+              <option value="other">Р”СЂСѓРіРѕРµ</option>
             </select>
           </label>
           <label>
-            Город
+            Р“РѕСЂРѕРґ
             <input
               type="text"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              placeholder="Бишкек"
+              placeholder="Р‘РёС€РєРµРє"
             />
           </label>
 
           <label>
-            Фото (до 5 штук)
+            Р¤РѕС‚Рѕ (РґРѕ 5 С€С‚СѓРє)
             <input
               type="file"
               accept="image/*"
@@ -206,7 +198,7 @@ function CreateAd() {
               disabled={loading}
               style={{ width: '100%' }}
             >
-              {loading ? 'Отправка...' : 'Отправить на модерацию'}
+              {loading ? 'РћС‚РїСЂР°РІРєР°...' : 'РћС‚РїСЂР°РІРёС‚СЊ РЅР° РјРѕРґРµСЂР°С†РёСЋ'}
             </button>
           </div>
         </form>

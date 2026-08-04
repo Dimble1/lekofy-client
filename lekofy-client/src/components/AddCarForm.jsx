@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import '../styles/AddCarForm.css';
-import { adsAPI } from '../services/api';
+import { adsAPI, uploadFilesToSupabase } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 
 const AddCarForm = ({ onBack }) => {
@@ -274,10 +274,11 @@ const AddCarForm = ({ onBack }) => {
     }
 
     const formDataToSend = new FormData();
+    const imageUrls = await uploadFilesToSupabase(images, { folder: 'ads' });
     Object.keys(formData).forEach(key => {
       if (key === 'images') {
-        formData.images.forEach((image, index) => {
-          formDataToSend.append('images', image);
+        imageUrls.forEach((url) => {
+          formDataToSend.append('images', url);
         });
       } else {
         formDataToSend.append(key, formData[key]);

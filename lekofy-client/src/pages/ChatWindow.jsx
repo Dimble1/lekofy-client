@@ -1,24 +1,24 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { adsAPI, chatAPI, normalizeMediaList, resolveMediaUrl } from '../services/api';
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { adsAPI, chatAPI, normalizeMediaList, resolveMediaUrl, uploadFileToSupabase } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import LoadingAnimation from '../components/LoadingAnimation.jsx';
 import chatEmptyIllustration from '../assets/chat-empty.svg';
 
 const QUICK_REPLIES = [
-  'Здравствуйте! Товар ещё актуален?',
-  'Можно немного уступить по цене?',
-  'Когда сможете отправить?',
-  'Можно фото/видео вживую?',
+  'Р—РґСЂР°РІСЃС‚РІСѓР№С‚Рµ! РўРѕРІР°СЂ РµС‰С‘ Р°РєС‚СѓР°Р»РµРЅ?',
+  'РњРѕР¶РЅРѕ РЅРµРјРЅРѕРіРѕ СѓСЃС‚СѓРїРёС‚СЊ РїРѕ С†РµРЅРµ?',
+  'РљРѕРіРґР° СЃРјРѕР¶РµС‚Рµ РѕС‚РїСЂР°РІРёС‚СЊ?',
+  'РњРѕР¶РЅРѕ С„РѕС‚Рѕ/РІРёРґРµРѕ РІР¶РёРІСѓСЋ?',
 ];
 
-const EMOJIS = ['🙂', '👍', '🔥', '🙏', '✅', '😎', '🤝', '💬'];
+const EMOJIS = ['рџ™‚', 'рџ‘Ќ', 'рџ”Ґ', 'рџ™Џ', 'вњ…', 'рџЋ', 'рџ¤ќ', 'рџ’¬'];
 const MAX_CUSTOM_REPLIES = 5;
 
 function formatPrice(value) {
   const amount = Number(value || 0);
-  if (!Number.isFinite(amount) || amount <= 0) return 'Цена не указана';
-  return `${amount.toLocaleString('ru-RU')} сом`;
+  if (!Number.isFinite(amount) || amount <= 0) return 'Р¦РµРЅР° РЅРµ СѓРєР°Р·Р°РЅР°';
+  return `${amount.toLocaleString('ru-RU')} СЃРѕРј`;
 }
 
 function loadStoredReplies(chatId) {
@@ -96,7 +96,7 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
           }
         }
       } catch (e) {
-        setError(e.message || 'Не удалось загрузить сообщения');
+        setError(e.message || 'РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ СЃРѕРѕР±С‰РµРЅРёСЏ');
       } finally {
         setLoading(false);
       }
@@ -255,7 +255,7 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
     return seller || buyer;
   }, [chatInfo, user?.id]);
 
-  const resolvedTitle = linkedAd?.title || title || counterparty?.name || 'Чат';
+  const resolvedTitle = linkedAd?.title || title || counterparty?.name || 'Р§Р°С‚';
   const resolvedProfileName = profileName || counterparty?.name || resolvedTitle;
   const resolvedProfileUserId = profileUserId || counterparty?.id || chatInfo?.Seller?.id || chatInfo?.Buyer?.id || null;
   const adImage = normalizeMediaList(linkedAd?.images)[0] || '';
@@ -305,7 +305,7 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
   };
 
   const createQuickReply = () => {
-    const value = window.prompt('Введите текст быстрого сообщения');
+    const value = window.prompt('Р’РІРµРґРёС‚Рµ С‚РµРєСЃС‚ Р±С‹СЃС‚СЂРѕРіРѕ СЃРѕРѕР±С‰РµРЅРёСЏ');
     const trimmed = value?.trim();
     if (!trimmed) return;
 
@@ -337,14 +337,14 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
 
   const handleReport = () => {
     setMenuOpen(false);
-    const reason = window.prompt('Опишите причину жалобы');
+    const reason = window.prompt('РћРїРёС€РёС‚Рµ РїСЂРёС‡РёРЅСѓ Р¶Р°Р»РѕР±С‹');
     if (!reason || !reason.trim()) return;
-    window.alert('Жалоба отправлена модераторам.');
+    window.alert('Р–Р°Р»РѕР±Р° РѕС‚РїСЂР°РІР»РµРЅР° РјРѕРґРµСЂР°С‚РѕСЂР°Рј.');
   };
 
   const handleBlock = () => {
     setMenuOpen(false);
-    window.alert('Пользователь заблокирован.');
+    window.alert('РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅ.');
   };
 
   const handleFile = (event) => {
@@ -352,7 +352,7 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
     if (!file) return;
 
     if (!String(file.type || '').startsWith('image/')) {
-      setError('Можно отправлять только фото');
+      setError('РњРѕР¶РЅРѕ РѕС‚РїСЂР°РІР»СЏС‚СЊ С‚РѕР»СЊРєРѕ С„РѕС‚Рѕ');
       event.target.value = '';
       return;
     }
@@ -364,10 +364,10 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
 
     setError('');
     setSending(true);
-    chatAPI
-      .sendImageMessage(chatId, file)
+    uploadFileToSupabase(file, { folder: 'chat' })
+      .then((imageUrl) => chatAPI.sendImageMessage(chatId, imageUrl))
       .then(() => loadMessages(false))
-      .catch((e) => setError(e.message || 'Не удалось отправить фото'))
+      .catch((e) => setError(e.message || 'РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РїСЂР°РІРёС‚СЊ С„РѕС‚Рѕ'))
       .finally(() => setSending(false));
 
     event.target.value = '';
@@ -385,7 +385,7 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
       await loadMessages(false);
       requestAnimationFrame(() => textareaRef.current?.focus());
     } catch (e) {
-      setError(e.message || 'Не удалось отправить сообщение');
+      setError(e.message || 'РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РїСЂР°РІРёС‚СЊ СЃРѕРѕР±С‰РµРЅРёРµ');
       setText(trimmed);
     } finally {
       setSending(false);
@@ -422,9 +422,9 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
             if (resolvedProfileUserId) navigate('profile', { userId: resolvedProfileUserId });
           }}
           disabled={!resolvedProfileUserId}
-          title={resolvedProfileUserId ? 'Открыть профиль' : 'Профиль недоступен'}
+          title={resolvedProfileUserId ? 'РћС‚РєСЂС‹С‚СЊ РїСЂРѕС„РёР»СЊ' : 'РџСЂРѕС„РёР»СЊ РЅРµРґРѕСЃС‚СѓРїРµРЅ'}
         >
-          {(resolvedProfileName || 'Чат').charAt(0).toUpperCase()}
+          {(resolvedProfileName || 'Р§Р°С‚').charAt(0).toUpperCase()}
         </button>
 
         <div className="neo-window-title-wrap">
@@ -435,11 +435,11 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
               if (resolvedProfileUserId) navigate('profile', { userId: resolvedProfileUserId });
             }}
             disabled={!resolvedProfileUserId}
-            title={resolvedProfileUserId ? 'Перейти в профиль' : 'Профиль недоступен'}
+            title={resolvedProfileUserId ? 'РџРµСЂРµР№С‚Рё РІ РїСЂРѕС„РёР»СЊ' : 'РџСЂРѕС„РёР»СЊ РЅРµРґРѕСЃС‚СѓРїРµРЅ'}
           >
             {resolvedProfileName}
           </button>
-          <div className="neo-window-status">{isOtherTyping ? 'печатает...' : 'в сети'}</div>
+          <div className="neo-window-status">{isOtherTyping ? 'РїРµС‡Р°С‚Р°РµС‚...' : 'РІ СЃРµС‚Рё'}</div>
         </div>
 
         <div className="neo-window-actions">
@@ -447,7 +447,7 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
             type="button"
             className="neo-icon-btn"
             onClick={() => setSearchOpen((value) => !value)}
-            title="Поиск по сообщениям"
+            title="РџРѕРёСЃРє РїРѕ СЃРѕРѕР±С‰РµРЅРёСЏРј"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" />
@@ -456,7 +456,7 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
           </button>
 
           <div className="neo-menu-wrap" ref={menuPanelRef}>
-            <button type="button" className="neo-icon-btn" onClick={() => setMenuOpen((value) => !value)} title="Меню">
+            <button type="button" className="neo-icon-btn" onClick={() => setMenuOpen((value) => !value)} title="РњРµРЅСЋ">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <circle cx="5" cy="12" r="1.8" fill="currentColor" />
                 <circle cx="12" cy="12" r="1.8" fill="currentColor" />
@@ -466,8 +466,8 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
 
             {menuOpen && (
               <div className="neo-menu-panel">
-                <button type="button" onClick={handleReport}>Пожаловаться</button>
-                <button type="button" onClick={handleBlock}>Заблокировать</button>
+                <button type="button" onClick={handleReport}>РџРѕР¶Р°Р»РѕРІР°С‚СЊСЃСЏ</button>
+                <button type="button" onClick={handleBlock}>Р—Р°Р±Р»РѕРєРёСЂРѕРІР°С‚СЊ</button>
               </div>
             )}
           </div>
@@ -477,14 +477,14 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
       {linkedAd && (
         <button type="button" className="neo-chat-ad-card" onClick={openAdDetail}>
           <div className="neo-chat-ad-media">
-            {adImage ? <img src={resolveMediaUrl(adImage)} alt={linkedAd.title || 'Объявление'} /> : <span>•</span>}
+            {adImage ? <img src={resolveMediaUrl(adImage)} alt={linkedAd.title || 'РћР±СЉСЏРІР»РµРЅРёРµ'} /> : <span>вЂў</span>}
           </div>
           <div className="neo-chat-ad-body">
-            <div className="neo-chat-ad-title">{linkedAd.title || 'Объявление'}</div>
+            <div className="neo-chat-ad-title">{linkedAd.title || 'РћР±СЉСЏРІР»РµРЅРёРµ'}</div>
             <div className="neo-chat-ad-price">{formatPrice(linkedAd.price)}</div>
-            <div className="neo-chat-ad-meta">{linkedAd.city || 'Город не указан'}</div>
+            <div className="neo-chat-ad-meta">{linkedAd.city || 'Р“РѕСЂРѕРґ РЅРµ СѓРєР°Р·Р°РЅ'}</div>
           </div>
-          <span className="neo-chat-ad-arrow">›</span>
+          <span className="neo-chat-ad-arrow">вЂє</span>
         </button>
       )}
 
@@ -494,7 +494,7 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
             type="text"
             value={messageQuery}
             onChange={(event) => setMessageQuery(event.target.value)}
-            placeholder="Поиск по сообщениям..."
+            placeholder="РџРѕРёСЃРє РїРѕ СЃРѕРѕР±С‰РµРЅРёСЏРј..."
           />
         </div>
       )}
@@ -502,20 +502,20 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
       <div className="neo-messages" ref={messagesRef}>
         {loading && (
           <LoadingAnimation
-            message="Загружаем переписку..."
-            hint="Подтягиваем сообщения и статусы"
+            message="Р—Р°РіСЂСѓР¶Р°РµРј РїРµСЂРµРїРёСЃРєСѓ..."
+            hint="РџРѕРґС‚СЏРіРёРІР°РµРј СЃРѕРѕР±С‰РµРЅРёСЏ Рё СЃС‚Р°С‚СѓСЃС‹"
           />
         )}
 
         {!loading && !messages.length && (
           <div className="empty chat-empty">
-            <img src={chatEmptyIllustration} alt="Пустой диалог" className="chat-empty-svg" />
-            <div>Начните диалог первым сообщением</div>
+            <img src={chatEmptyIllustration} alt="РџСѓСЃС‚РѕР№ РґРёР°Р»РѕРі" className="chat-empty-svg" />
+            <div>РќР°С‡РЅРёС‚Рµ РґРёР°Р»РѕРі РїРµСЂРІС‹Рј СЃРѕРѕР±С‰РµРЅРёРµРј</div>
           </div>
         )}
 
         {!loading && messages.length > 0 && !filteredMessages.length && (
-          <div className="empty">По запросу ничего не найдено</div>
+          <div className="empty">РџРѕ Р·Р°РїСЂРѕСЃСѓ РЅРёС‡РµРіРѕ РЅРµ РЅР°Р№РґРµРЅРѕ</div>
         )}
 
         {!loading &&
@@ -532,14 +532,14 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
               <div key={msg.id} className={`neo-msg-row ${mine ? 'me' : 'them'}`}>
                 <div className="neo-msg-bubble">
                   {imageUrl ? (
-                    <img className="neo-msg-image" src={resolveMediaUrl(imageUrl)} alt="Фото в чате" />
+                    <img className="neo-msg-image" src={resolveMediaUrl(imageUrl)} alt="Р¤РѕС‚Рѕ РІ С‡Р°С‚Рµ" />
                   ) : (
                     <div>{textMsg}</div>
                   )}
                   <div className="neo-msg-meta">
                     <span>{time}</span>
                   </div>
-                  {mine && msg.isRead && <div className="neo-msg-read">прочитано</div>}
+                  {mine && msg.isRead && <div className="neo-msg-read">РїСЂРѕС‡РёС‚Р°РЅРѕ</div>}
                 </div>
               </div>
             );
@@ -548,7 +548,7 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
         {!loading && isOtherTyping && (
           <div className="neo-msg-row them neo-typing-row">
             <div className="neo-msg-bubble neo-typing-bubble">
-              <span className="neo-typing-label">печатает</span>
+              <span className="neo-typing-label">РїРµС‡Р°С‚Р°РµС‚</span>
               <span className="neo-typing-dots" aria-label="typing">
                 <span />
                 <span />
@@ -564,7 +564,7 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
       <div className="neo-quick-row">
         <button type="button" className="neo-chip neo-chip--create" onClick={createQuickReply}>
           <span className="neo-chip__plus">+</span>
-          <span>Создать</span>
+          <span>РЎРѕР·РґР°С‚СЊ</span>
         </button>
 
         {quickReplies.map((reply) => (
@@ -576,8 +576,8 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
 
       <div className="neo-input-wrap" ref={inputWrapRef}>
         <div className="neo-input-tools" ref={emojiPanelRef}>
-          <button type="button" className="neo-icon-btn" onClick={() => setEmojiOpen((value) => !value)} title="Эмодзи">
-            <span>🙂</span>
+          <button type="button" className="neo-icon-btn" onClick={() => setEmojiOpen((value) => !value)} title="Р­РјРѕРґР·Рё">
+            <span>рџ™‚</span>
           </button>
 
           {emojiOpen && (
@@ -595,7 +595,7 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
           type="button"
           className="neo-icon-btn"
           onClick={() => fileInputRef.current?.click()}
-          title="Прикрепить файл"
+          title="РџСЂРёРєСЂРµРїРёС‚СЊ С„Р°Р№Р»"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
@@ -608,7 +608,7 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
           onChange={(event) => handleTextChange(event.target.value)}
           onKeyDown={handleKey}
           onFocus={handleComposerFocus}
-          placeholder="Введите сообщение..."
+          placeholder="Р’РІРµРґРёС‚Рµ СЃРѕРѕР±С‰РµРЅРёРµ..."
           rows={1}
           className="neo-input"
         />
@@ -618,7 +618,7 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
           className="neo-btn neo-send"
           onClick={send}
           disabled={!text.trim() || sending}
-          title="Отправить"
+          title="РћС‚РїСЂР°РІРёС‚СЊ"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="22" y1="2" x2="11" y2="13" />
@@ -639,7 +639,7 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
     <div className="container chat-page-full">
       <div className="neo-chat-window-wrap">
         <button className="neo-btn neo-btn-ghost" onClick={() => navigate('chat')}>
-          Назад к чатам
+          РќР°Р·Р°Рґ Рє С‡Р°С‚Р°Рј
         </button>
         {content}
       </div>
@@ -648,3 +648,4 @@ function ChatWindow({ chatId, title, adId, profileUserId, profileName, embedded 
 }
 
 export default ChatWindow;
+

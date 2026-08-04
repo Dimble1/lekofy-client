@@ -1,4 +1,4 @@
-require('dotenv').config();
+п»їrequire('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
@@ -46,6 +46,7 @@ User.hasMany(Notification, { as: 'Notifications', foreignKey: 'userId' });
 const authRoutes = require('./routes/auth');
 const adRoutes = require('./routes/ads');
 const chatRoutes = require('./routes/chat');
+const storageRoutes = require('./routes/storage');
 const favoriteRoutes = require('./routes/favorites');
 const adminRoutes = require('./routes/admin');
 const notificationRoutes = require('./routes/notifications');
@@ -65,18 +66,19 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/ads', adRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/storage', storageRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 
-app.get('/ping', (_req, res) => res.json({ message: 'Lekofy API работает!' }));
+app.get('/ping', (_req, res) => res.json({ message: 'Lekofy API СЂР°Р±РѕС‚Р°РµС‚!' }));
 
 io.on('connection', (socket) => {
-  console.log('Пользователь подключился:', socket.id);
+  console.log('РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РїРѕРґРєР»СЋС‡РёР»СЃСЏ:', socket.id);
 
   socket.on('joinRoom', (chatId) => {
     socket.join(String(chatId));
-    console.log(`Пользователь зашел в чат: ${chatId}`);
+    console.log(`РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ Р·Р°С€РµР» РІ С‡Р°С‚: ${chatId}`);
   });
 
   socket.on('joinUser', (userId) => {
@@ -89,7 +91,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('Пользователь отключился:', socket.id);
+    console.log('РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РѕС‚РєР»СЋС‡РёР»СЃСЏ:', socket.id);
   });
 });
 
@@ -97,11 +99,12 @@ const PORT = process.env.PORT || 3000;
 
 sequelize.sync({ alter: true })
   .then(() => {
-    console.log('База данных подключена!');
+    console.log('Р‘Р°Р·Р° РґР°РЅРЅС‹С… РїРѕРґРєР»СЋС‡РµРЅР°!');
     startTelegramBotPolling();
     server.listen(PORT, () => {
-      console.log(`Lekofy API запущен на порту ${PORT}`);
+      console.log(`Lekofy API Р·Р°РїСѓС‰РµРЅ РЅР° РїРѕСЂС‚Сѓ ${PORT}`);
     });
   })
-  .catch((err) => console.error('Ошибка подключения к БД:', err));
+  .catch((err) => console.error('РћС€РёР±РєР° РїРѕРґРєР»СЋС‡РµРЅРёСЏ Рє Р‘Р”:', err));
+
 

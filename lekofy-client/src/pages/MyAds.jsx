@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
-import { adsAPI, resolveMediaUrl, normalizeMediaList } from '../services/api';
+import { adsAPI, resolveMediaUrl, normalizeMediaList, uploadFilesToSupabase } from '../services/api';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useRouter } from '../context/RouterContext.jsx';
 import { categories } from '../data/categories';
@@ -279,9 +279,9 @@ function MyAds({ initialEditId = null }) {
     formData.append('city', editState.form.city.trim());
     formData.append('phone', editState.form.phone.trim());
     formData.append('existingImages', JSON.stringify(editState.form.images || []));
-
-    editState.newFiles.forEach((file) => {
-      formData.append('images', file);
+    const newImageUrls = await uploadFilesToSupabase(editState.newFiles, { folder: 'ads' });
+    newImageUrls.forEach((url) => {
+      formData.append('images', url);
     });
 
     try {

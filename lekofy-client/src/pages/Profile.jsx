@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { chatAPI, profileAPI, resolveMediaUrl } from '../services/api';
+import { chatAPI, profileAPI, resolveMediaUrl, uploadFileToSupabase } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import LoadingAnimation from '../components/LoadingAnimation.jsx';
@@ -170,8 +170,9 @@ function Profile({ userId }) {
       setAvatarSaving(true);
       setAvatarError('');
 
+      const avatarUrl = await uploadFileToSupabase(file, { folder: 'avatars' });
       const formData = new FormData();
-      formData.append('avatar', file);
+      formData.append('avatarUrl', avatarUrl);
 
       const response = await profileAPI.updateMe(formData);
       const updatedUser = response?.user || response;

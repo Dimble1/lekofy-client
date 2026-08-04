@@ -47,6 +47,76 @@ export const normalizeMediaList = (value) => {
 
 export const getFirstMedia = (value) => normalizeMediaList(value)[0] || '';
 
+const SUPABASE_DEFAULT_BUCKET = 'lekofy-media';
+
+const sanitizeSegment = (value) => String(value || '')
+  .trim()
+  .replace(/[^a-zA-Z0-9._-]+/g, '-')
+  .replace(/-+/g, '-')
+  .replace(/^-|-$/g, '');
+
+const getFileExtension = (file) => {
+  const name = String(file?.name || '');
+  const dot = name.lastIndexOf('.');
+  if (dot >= 0 && dot < name.length - 1) return name.slice(dot).toLowerCase();
+  const map = {
+    'image/jpeg': '.jpg',
+    'image/jpg': '.jpg',
+    'image/png': '.png',
+    'image/webp': '.webp',
+    'image/gif': '.gif',
+    'image/avif': '.avif',
+  };
+  return map[String(file?.type || '').toLowerCase()] || '.bin';
+};
+
+const buildUploadPath = (folder, file) => {
+  const safeFolder = sanitizeSegment(folder) || 'uploads';
+  const safeBase = sanitizeSegment(String(file?.name || '').replace(/\.[^.]+$/, '')) || 'file';
+  return `${safeFolder}/${Date.now()}-${Math.random().toString(36).slice(2, 10)}-${safeBase}${getFileExtension(file)}`;
+};
+
+export const uploadFileToSupabase = async (file, { folder = 'uploads', bucket = SUPABASE_DEFAULT_BUCKET, upsert = false } = {}) => {
+  if (!file) throw new Error('Файл не передан');
+
+  const signResponse = await request('/storage/signed-upload', {
+    method: 'POST',
+    body: JSON.stringify({
+      bucket,
+      folder,
+      originalName: file.name || 'file',
+      mimetype: file.type || 'application/octet-stream',
+      upsert,
+      path: buildUploadPath(folder, file),
+    }),
+  });
+
+  const uploadResponse = await fetch(signResponse.signedUrl, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': file.type || 'application/octet-stream',
+      'x-upsert': upsert ? 'true' : 'false',
+    },
+    body: file,
+  });
+
+  if (!uploadResponse.ok) {
+    const text = await uploadResponse.text().catch(() => '');
+    throw new Error(text || 'Не удалось загрузить файл в Supabase');
+  }
+
+  return signResponse.publicUrl;
+};
+
+export const uploadFilesToSupabase = async (files, options) => {
+  const list = Array.isArray(files) ? files : [];
+  const urls = [];
+  for (const file of list) {
+    urls.push(await uploadFileToSupabase(file, options));
+  }
+  return urls;
+};
+
 // Р¤СѓРЅРєС†РёСЏ РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ С‚РѕРєРµРЅР° РёР· localStorage
 const getToken = () => localStorage.getItem('token');
 
@@ -306,7 +376,11 @@ export const chatAPI = {
 
   sendImageMessage: (chatId, file) => {
     const formData = new FormData();
-    formData.append('image', file);
+    if (typeof file === 'string') {
+      formData.append('imageUrl', file);
+    } else {
+      formData.append('image', file);
+    }
     return request(`/chat/${chatId}/messages/image`, {
       method: 'POST',
       body: formData,

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import '../styles/AdForm.css';
-import { adsAPI } from '../services/api';
+import { adsAPI, uploadFilesToSupabase } from '../services/api';
 import { useRouter } from '../context/RouterContext.jsx';
 
 // helper to create input components based on type
@@ -135,8 +135,9 @@ const AdForm = ({ category, onBack }) => {
       payload.append('phone', formData.contact);
       payload.append('category', category.id);
       payload.append('meta', JSON.stringify(meta));
-      images.forEach((image) => {
-        payload.append('images', image);
+      const imageUrls = await uploadFilesToSupabase(images, { folder: 'ads' });
+      imageUrls.forEach((url) => {
+        payload.append('images', url);
       });
 
       const created = await adsAPI.create(payload);
